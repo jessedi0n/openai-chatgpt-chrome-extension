@@ -1,0 +1,18 @@
+{
+  "optionsTitle": {
+    "message": "Einstellungen",
+    "description": "Titel der Einstellungen-Seite"
+  },
+  "languageTitle": {
+    "message": "Sprache",
+    "description": "Titel der Sprache-Option"
+  },
+  "apiTitle": {
+    "message": "API-Schlüssel eingeben:",
+    "description": "Titel der API-Schlüssel-Eingabe"
+  },
+  "lastRequestsTitle": {
+    "message": "Letzte Anfragen",
+    "description": "Titel der letzten Anfragen"
+  }
+}

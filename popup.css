@@ -1,0 +1,240 @@
+body {
+    margin: 0;
+    padding: 0.5rem;
+    background-color: #454545;
+    width: 280px;
+    font-size: small;
+}
+
+p {
+    margin: 0;
+}
+
+#query-input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#answer {
+    color: white;
+}
+
+
+#answerWrapper {
+    display: none;
+    background-color: #333333;
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#queriesAnswersContainer {
+    display: none;
+    color: white;
+    margin-top: 0.5rem;
+}
+
+.queriesAnswers {
+    border-radius: 8px;
+    background-color: #333333;
+    padding: 0.5rem;
+}
+
+#lastQuery {
+    color: rgb(188, 188, 188);
+}
+
+#lastAnswer {
+    color: white;
+    margin-top: 0.5rem;
+}
+
+#lastRequest {
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background-color: #333333;
+    border-radius: 4px;
+}
+
+.btn {
+    background-color: white;
+    color: black;
+    font-size: medium;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    padding: 0.5rem;
+}
+
+.btn:hover {
+    background-color: #d0d0d0;
+}
+
+.btn:disabled {
+    background-color: #a7a7a7;
+    color: rgb(255, 255, 255);
+    cursor: default;
+}
+
+.btn img {
+    width: 1rem;
+    height: 1rem;
+}
+
+.copyRow {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+    color: #a7a7a7;
+    margin-top: 0.5rem;
+}
+
+.copyText {
+    display: none;
+    color: #a7a7a7;
+    margin-right: 0.5rem;
+}
+
+.copyButton {
+    font-size: medium;
+    color: white;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 0.5rem;
+}
+
+.copyButton:hover {
+    color: #d0d0d0;
+    background-color: transparent;
+}
+
+.removeButton {
+    font-size: medium;
+    color: white;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.removeButton:hover {
+    color: #d0d0d0;
+    background-color: transparent;
+}
+
+.show-hide-wrapper {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    margin-top: 0.5rem;
+}
+
+#clear-button {
+    color: white;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+#clear-button:hover {
+    color: #d0d0d0;
+}
+
+#show-hide-last-answer-button {
+    color: white;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 0.5rem;
+}
+
+#show-hide-last-answer-button:hover {
+    color: #d0d0d0;
+}
+
+.input-label {
+    font-weight: bold;
+    font-size: medium;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.input-container input {
+    width: 100%;
+    outline: none;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+#loading-indicator {
+    display: none;
+    color: white;
+    margin-top: 0.5rem;
+}
+
+.stage {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    position: relative;
+    margin: 0 -5%;
+    overflow: hidden;
+  }
+
+.dot-flashing {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #ffffff;
+    animation: dot-flashing 1s infinite linear alternate;
+    animation-delay: 0.5s;
+    left: 30px;
+  }
+  .dot-flashing::before, .dot-flashing::after {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    top: 0;
+  }
+  .dot-flashing::before {
+    left: -15px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #ffffff;
+    animation: dot-flashing 1s infinite alternate;
+    animation-delay: 0s;
+  }
+  .dot-flashing::after {
+    left: 15px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #ffffff;
+    animation: dot-flashing 1s infinite alternate;
+    animation-delay: 1s;
+  }
+  
+  @keyframes dot-flashing {
+    0% {
+      background-color: #ffffff;
+    }
+    50%, 100% {
+      background-color: rgba(196, 196, 198, 0.2);
+    }
+  }

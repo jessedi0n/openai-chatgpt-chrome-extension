@@ -1,0 +1,34 @@
+body {
+    margin: 0;
+    padding: 0.5rem;
+    background-color: #454545 !important;
+    font-size: small;
+}
+
+.bg-dark {
+    background-color: #454545;
+}
+
+.form-group {
+    width: 500px;
+}
+
+#submit {
+    margin-left: 0.5rem;
+}
+
+#key {
+    color: aquamarine;
+}
+
+.form-select {
+    padding: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 0.5rem !important;
+}
+
+.input-row {
+    margin-bottom: 0.5rem;
+}

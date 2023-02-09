@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <div class="input-container form-group" style="overflow: hidden;">
+        <input type="search" id="query-input" placeholder="Ask Something...">
+        <button id="submit-button" class="btn"><i class="fa fa-paper-plane"></i></button>
+    </div>
+
+    <div class="stage">
+        <div id="loading-indicator" class="dot-flashing"></div>
+    </div>
+
+    <div id="answerWrapper">
+        <div id="answer"></div>
+        <div class="copyRow">
+            <span id="timestamp"></span>
+            <button id="copyAnswer" class="btn copyButton" title="Copy the Answer to the Clipboard"><i
+                    class="fa fa-clipboard"></i></button>
+        </div>
+    </div>
+
+    <div id="show-hide-wrapper" class="show-hide-wrapper">
+        <span id="lastRequestsTitle" style="font-weight: bold;"></span>
+        <div>
+            <button id="clear-button" class="btn" title="Clear last conversations"><i class="fa fa-trash"></i></button>
+            <button id="show-hide-last-answer-button" class="btn" title="Toggle last conversations"><i
+                    class="fa fa-eye"></i></button>
+        </div>
+    </div>
+
+    <div id="queriesAnswersContainer"></div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
