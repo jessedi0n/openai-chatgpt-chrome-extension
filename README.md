@@ -14,11 +14,11 @@ This extension allows you to easily access the power of the GPT-3 language model
 
 ## Features
 
-    Easy access to the GPT-3 language model
-    Responses are generated in real-time
-    Typewriter effect for the answer
-    Copy answer to clipboard feature
-    Show the last answer
+    - Easy access to the GPT-3 language model
+    - Responses are generated in real-time
+    - Typewriter effect for the answer
+    - Show or hide the last answers
+    - Copy answer to clipboard feature
 
 ## Note
 
