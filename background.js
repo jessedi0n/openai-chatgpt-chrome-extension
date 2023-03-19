@@ -10,24 +10,29 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
         let apiKey = await new Promise(resolve => chrome.storage.local.get(['apiKey'], result => resolve(result.apiKey)));
         try {
             // send the query to the OpenAI API
-            let response = await fetch('https://api.openai.com/v1/completions', {
+            let response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    "model": "text-davinci-003",
-                    "prompt": request.query,
-                    "max_tokens": 400,
-                    "temperature": 0.5
+                    "model": "gpt-3.5-turbo",
+                    "messages": [{ "role": "user", "content": request.query }]
                 })
             });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch. Status code: ${response.status}`);
+            }
             let data = await response.json();
             console.log(data);
             if (data && data.choices && data.choices.length > 0) {
                 // get the answer from the API response
-                let answer = data.choices[0].text;
+                let answer = data.choices[0].message.content;
+                // remove newlines from the answer if its the first character
+                if (answer.startsWith("\n")) {
+                    answer = answer.substring(1);
+                }
                 // send the answer back to the content script
                 chrome.runtime.sendMessage({ answer: answer });
             } else {
@@ -35,11 +40,8 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
             }
         } catch (error) {
             console.error("Error:", error);
-            if (error.error && error.error.message) {
-                // send the error message back to the content script
-                chrome.runtime.sendMessage({ answer: error.error.message });
-            }
+            chrome.runtime.sendMessage({ answer: `Error: ${error.message}` });
         }
     }
     return true;
-});
+});  

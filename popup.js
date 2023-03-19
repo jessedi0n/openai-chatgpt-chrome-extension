@@ -136,7 +136,6 @@ window.onload = function () {
             document.getElementById("answerWrapper").style.display = "block";
             // remove the newlines from the answer
             var answer = message.answer;
-
             // update the popup with the answer and give it a typewriter effect
             var i = 0;
             let typing = setInterval(function () {
@@ -167,14 +166,10 @@ window.onload = function () {
             // save the query and answer to the queriesAnswers array and add a timestamp to the last query and answer
             queriesAnswers.push({ query: query, answer: answer, timeStamp: new Date().toLocaleTimeString() });
 
-            // console.log("queriesAnswers array");
-            console.log(queriesAnswers);
-
             // save the array to local storage and add a timestamp to the last query and answer
             chrome.storage.local.set({ queriesAnswers: queriesAnswers, lastQuery: query, lastAnswer: answer, lastTimeStamp: new Date().toLocaleTimeString() }, function () {
                 console.log("queriesAnswers array updated");
-            }
-            );
+            });
         } else if (message.error) {
             document.getElementById("answerWrapper").style.display = "block";
             document.getElementById("answer").innerText = message.error;
