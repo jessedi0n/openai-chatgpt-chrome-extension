@@ -14,7 +14,7 @@ This extension allows you to easily access the power of the GPT-3 language model
 
 ## Features
 
-    - Easy access to the GPT-3 language model
+    - Easy access to the GPT-3.5-Turbo language model
     - Responses are generated in real-time
     - Typewriter effect for the answer
     - Show or hide the last answers
