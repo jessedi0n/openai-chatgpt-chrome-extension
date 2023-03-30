@@ -6,8 +6,21 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
     if (request.query) {
-        // get the API key from local storage
+        // get the API key and previous messages from local storage
         let apiKey = await new Promise(resolve => chrome.storage.local.get(['apiKey'], result => resolve(result.apiKey)));
+        let prevMessages = await new Promise(resolve => chrome.storage.local.get(['prevMessages'], result => resolve(result.prevMessages)));
+
+        // add previous messages to the messages parameter
+        let messages = [];
+        if (prevMessages) {
+            messages = prevMessages.concat([{ "role": "user", "content": request.query }]);
+        } else {
+            messages = [
+                { "role": "system", "content": "you a are a helpful chat bot. your answer should not be too long." },
+                { "role": "user", "content": request.query }
+            ];
+        }
+
         try {
             // send the query to the OpenAI API
             let response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -17,8 +30,8 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    "model": "gpt-3.5-turbo",
-                    "messages": [{ "role": "user", "content": request.query }]
+                    "model": "gpt-4",
+                    "messages": messages
                 })
             });
             if (!response.ok) {
@@ -33,8 +46,9 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
                 if (answer.startsWith("\n")) {
                     answer = answer.substring(1);
                 }
-                // send the answer back to the content script
+                // send the answer back to the content script and store the previous messages
                 chrome.runtime.sendMessage({ answer: answer });
+                chrome.storage.local.set({ prevMessages: messages });
             } else {
                 chrome.runtime.sendMessage({ answer: "No answer Found. Make sure your API-Key is valid." });
             }
@@ -44,4 +58,4 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
         }
     }
     return true;
-});  
+});
