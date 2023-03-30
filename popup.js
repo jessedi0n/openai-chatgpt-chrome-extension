@@ -40,6 +40,10 @@ clearButton.addEventListener("click", () => {
 
 function displayQueriesAnswers() {
   chrome.storage.local.get(['queriesAnswers'], ({ queriesAnswers }) => {
+    // Check if queriesAnswers is null or empty
+    if (!queriesAnswers || queriesAnswers.length === 0) {
+      return;
+    }
     // Reverse the array so that the last item is displayed first
     queriesAnswers = queriesAnswers.reverse();
     // If the queriesAnswers array is not empty
