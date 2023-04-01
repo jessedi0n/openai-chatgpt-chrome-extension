@@ -6,7 +6,7 @@ This extension unlocks the full potential of the GPT-3.5-Turbo language model fr
 
 ## Getting started
     
-    1. Clone the extension file from the repo.
+    1. Clone the extension or download the latest release.
     2. Open the Chrome browser and navigate to the "chrome://extensions" URL.
     3. Enable the developer mode by clicking the toggle switch in the top right corner of the page.
     4. Click on the "Load unpacked" button and select the cloned extension folder.
