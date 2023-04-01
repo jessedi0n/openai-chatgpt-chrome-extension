@@ -58,6 +58,7 @@ function displayQueriesAnswers() {
       queriesAnswersContainer.innerHTML = "";
       // Iterate through the queriesAnswers array and display each item
       queriesAnswers.forEach(({ query, answer, timeStamp }, i) => {
+        const answerWithBreaks = answer.replace(/\n/g, '<br>');
         // Create an HTML element to display the query and answer
         const item = document.createElement('div');
         item.className = "queriesAnswers";
@@ -74,7 +75,7 @@ function displayQueriesAnswers() {
         // Add query, answer, copy button, and remove button to the HTML element
         item.innerHTML = `
           <div style="color: rgb(188, 188, 188); margin-bottom: 0.2rem;">${query}</div>
-          <div>${answer}</div>
+          <div>${answerWithBreaks}</div>
           <div class="copyRow">
             ${timeStampElem}
             <div>${removeButton}${copyButton}</div>
