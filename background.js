@@ -5,13 +5,9 @@ chrome.runtime.onInstalled.addListener(function (details) {
 });
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
-    if (request.query) {
-        // your existing code for handling user query messages
-    } else if (request.popupOpened) {
-        // clear the prevMessages storage when the popup is opened
-        chrome.storage.local.remove('prevMessages');
-    }
-    return true;
+    // clear the prevMessages storage when the popup is opened
+    chrome.storage.local.remove('prevMessages');
+
 });
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
