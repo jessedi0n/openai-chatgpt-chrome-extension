@@ -38,9 +38,10 @@ clearButton.addEventListener("click", () => {
   showHideWrapper.style.display = "none";
   // Clear the queriesAnswers container
   queriesAnswersContainer.innerHTML = "";
-  // queriesAnswersContainer.style.display = "none"; s
+  queriesAnswersContainer.style.display = "none";
 });
 
+// Listen for clicks on the submit button
 function displayQueriesAnswers() {
   chrome.storage.local.get(['queriesAnswers'], ({ queriesAnswers }) => {
     // Check if queriesAnswers is null or empty
@@ -135,18 +136,8 @@ chrome.runtime.onMessage.addListener(({ answer, error }) => {
   if (answer) {
     // Show the answer
     document.getElementById("answerWrapper").style.display = "block";
-    // Remove the newlines from the answer
-    answer = answer.replace(/\n/g, "");
-    // Update the popup with the answer and give it a typewriter effect
-    // let i = 0;
-    // const typing = setInterval(() => {
-    //   document.getElementById("answer").innerHTML += answer.charAt(i);
-    //   i++;
-    //   if (i > answer.length) {
-    //     clearInterval(typing);
-    //   }
-    // }, 30);
-    document.getElementById("answer").innerHTML += answer;
+    const answerWithBreaks = answer.replace(/\n/g, '<br>');
+    document.getElementById("answer").innerHTML += answerWithBreaks;
     // Add event listener to copy button
     document.getElementById("copyAnswer").addEventListener("click", () => {
       // Get the answer text
