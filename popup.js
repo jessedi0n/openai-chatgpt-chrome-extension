@@ -4,6 +4,9 @@ const clearButton = document.getElementById("clear-button");
 const queriesAnswersContainer = document.getElementById("queriesAnswersContainer");
 const showHideWrapper = document.getElementById("show-hide-wrapper");
 
+// Sends a message to the background script to clear prevMessages when popup is opened
+chrome.runtime.sendMessage({ popupOpened: true });
+
 // Disable submit button by default
 if (submitButton) {
   submitButton.disabled = true;
@@ -64,7 +67,8 @@ function displayQueriesAnswers() {
         // Create a copy button
         const copyButton = `<button id=copyLastAnswer${i} class="btn copyButton" title="Copy the Answer to the Clipboard"><i class="fa fa-clipboard" style="font-size: small"></i></button>`;
         // Create a time stamp the time now in the format hh:mm:ss
-        const time = new Date().toLocaleTimeString();
+        const options = { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const time = new Date().toLocaleString('en-US', options);
         const timeStampElem = `<div class="timeStamp">${timeStamp || time}</div>`;
         // Add query, answer, copy button, and remove button to the HTML element
         item.innerHTML = `
@@ -152,15 +156,17 @@ chrome.runtime.onMessage.addListener(({ answer, error }) => {
         .then(() => console.log("Answer text copied to clipboard"))
         .catch((err) => console.error("Could not copy text: ", err));
     });
+    const options = { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    const time = new Date().toLocaleString('en-US', options);
     // Give the span with the id timestamp the current time
-    document.getElementById("timestamp").innerText = new Date().toLocaleTimeString();
+    document.getElementById("timestamp").innerText = time;
     // Hide the loading indicator
     document.getElementById("loading-indicator").style.display = "none";
     // Get the query from the input field
     const query = queryInput.value;
     // Save the query and answer to the queriesAnswers array and add a timestamp to the last query and answer
     chrome.storage.local.get({ queriesAnswers: [] }, ({ queriesAnswers }) => {
-      queriesAnswers.push({ query, answer, timeStamp: new Date().toLocaleTimeString() });
+      queriesAnswers.push({ query, answer, timeStamp: time });
       // Save the array to local storage and add a timestamp to the last query and answer
       chrome.storage.local.set({ queriesAnswers }, () => {
         console.log("queriesAnswers array updated");

@@ -6,6 +6,16 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
     if (request.query) {
+        // your existing code for handling user query messages
+    } else if (request.popupOpened) {
+        // clear the prevMessages storage when the popup is opened
+        chrome.storage.local.remove('prevMessages');
+    }
+    return true;
+});
+
+chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
+    if (request.query) {
         // get the API key and previous messages from local storage
         let apiKey = await new Promise(resolve => chrome.storage.local.get(['apiKey'], result => resolve(result.apiKey)));
         let prevMessages = await new Promise(resolve => chrome.storage.local.get(['prevMessages'], result => resolve(result.prevMessages)));
