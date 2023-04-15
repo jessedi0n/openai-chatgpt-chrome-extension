@@ -14,10 +14,10 @@
         <h1 id="titleText" class="text-white"></h1>
       </div>
     </div>
-    <span id="apiText" class="text-white"></span>
     <div class="row input-row">
-      <div class="col-sm">
-        <form class="text-white mt-1">
+      <div class="col-12">
+        <label id="apiText" for="input-api-key" class="form-label text-white"></label>
+        <form class="input-form text-white" id="input-api-key">
           <div class="d-flex form-group text-white">
             <input type="text" class="form-control" id="content" name="content" autocomplete="off">
             <input type="submit" class="btn btn-primary" value="Save" id="submit">
@@ -31,6 +31,16 @@
         <button class="btn btn-danger" id="reset">Reset API-Key</button>
       </div>
     </div>
+    <div class="row mb-3">
+      <div class="col-auto">
+        <label id="choose-model-text" for="apiModel" class="form-label text-white"></label>
+        <select class="form-select" id="apiModel">
+          <option value="gpt-3.5-turbo">GPT-3.5-Turbo</option>
+          <option value="gpt-4">GPT-4</option>
+        </select>
+      </div>
+    </div>
+
   </div>
 
   <script src="options.js"></script>

@@ -34,6 +34,9 @@ chrome.runtime.onMessage.addListener(async function (request) {
         // get the API key from local storage
         let apiKey = await new Promise(resolve => chrome.storage.local.get(['apiKey'], result => resolve(result.apiKey)));
 
+        // get the API model from local storage
+        let apiModel = await new Promise(resolve => chrome.storage.local.get(['apiModel'], result => resolve(result.apiModel)));
+
         // Add the user's message to the message array
         messageArray.push({ role: "user", "content": request.input });
 
@@ -46,7 +49,7 @@ chrome.runtime.onMessage.addListener(async function (request) {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    "model": "gpt-3.5-turbo",
+                    "model": apiModel,
                     "messages": messageArray
                 })
             });

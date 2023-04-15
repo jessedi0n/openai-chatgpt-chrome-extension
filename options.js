@@ -2,6 +2,7 @@ window.onload = function () {
     // get localised strings
     document.getElementById("titleText").innerText = chrome.i18n.getMessage("optionsTitle");
     document.getElementById("apiText").innerText = chrome.i18n.getMessage("apiTitle");
+    document.getElementById("choose-model-text").innerText = chrome.i18n.getMessage("apiModelTitle");
 
     // disable the submit button by default
     const button = document.getElementById("submit");
@@ -15,21 +16,16 @@ window.onload = function () {
             button.disabled = false;
         }
     });
+
     // submit the api key to the local storage
     document.getElementById("submit").addEventListener("click", function (event) {
         event.preventDefault();
         let apiKey = document.getElementById("content").value;
         chrome.storage.local.set({ apiKey: apiKey }, function () {
             console.log("API key saved: " + apiKey);
-            document.getElementById("status").innerHTML = "API-Key saved. You can now use the extension.";
-            document.getElementById("status").style.color = "white";
+            document.getElementById("status").innerHTML = "API-Key saved. The extension is ready to use.";
+            document.getElementById("status").style.color = "lightgreen";
             document.getElementById("content").value = "";
-
-            // hide status message after 3 seconds
-            setTimeout(function () {
-                document.getElementById("status").innerHTML = "";
-            }
-                , 3000);
         });
         // disable the submit button
         button.disabled = true;
@@ -46,18 +42,32 @@ window.onload = function () {
     document.getElementById("reset").addEventListener("click", function (event) {
         event.preventDefault();
         deleteAPIKey();
-        document.getElementById("status").innerHTML = "API-Key deleted. You need to enter a new API-Key.";
+        document.getElementById("status").innerHTML = "API-Key deleted. Please enter a new API-Key.";
         document.getElementById("status").style.color = "red";
-        // hide status message after 3 seconds
-        setTimeout(function () {
-            document.getElementById("status").innerHTML = "";
-        }
-            , 3000);
     });
 
-    // hide status message after 3 seconds
-    setTimeout(function () {
-        document.getElementById("status").innerHTML = "";
-    }
-        , 3000);
+    // Get the dropdown element
+    const apiModelSelect = document.getElementById('apiModel');
+
+    // Load the saved API model setting from Chrome storage and set the dropdown to the saved value
+    chrome.storage.local.get('apiModel', ({ apiModel }) => {
+        if (!apiModel) {
+            defaultModel = "gpt-3.5-turbo"; // set default API model if none is saved
+            chrome.storage.local.set({ apiModel: defaultModel });
+            apiModelSelect.value = defaultModel;
+        } else {
+            apiModelSelect.value = apiModel;
+        }
+    });
+
+    // Save the selected API model to Chrome storage when the dropdown value changes
+    apiModelSelect.addEventListener('change', () => {
+        const selectedApiModel = apiModelSelect.value;
+
+        chrome.storage.local.set({ apiModel: selectedApiModel }, function () {
+            console.log("API model saved: " + selectedApiModel);
+        });
+    });
+
+
 }

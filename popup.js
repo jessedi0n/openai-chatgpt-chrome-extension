@@ -177,8 +177,7 @@ const showHideLastAnswerButton = document.getElementById('show-hide-last-answer-
 queriesAnswersContainer.style.display = "none";
 showHideWrapper.style.display = "none";
 // Get localised strings
-document.getElementById("lastRequestsTitle").innerText =
-  chrome.i18n.getMessage("lastRequestsTitle");
+document.getElementById("lastRequestsTitle").innerText = chrome.i18n.getMessage("lastMessagesTitle");
 // Add a click event listener to the button
 showHideLastAnswerButton.addEventListener('click', () => {
   // If the last answer is currently hidden
