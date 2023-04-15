@@ -72,13 +72,10 @@ chrome.runtime.onMessage.addListener(async function (request) {
 
                 // Add the response from the assistant to the message array
                 messageArray.push({ role: "assistant", "content": response });
-            } else {
-                // send error message back to the content script
-                chrome.runtime.sendMessage({ answer: "No answer Found. Make sure your API-Key is valid." });
             }
         } catch (error) {
             // send error message back to the content script
-            chrome.runtime.sendMessage({ answer: `Error: ${error}` });
+            chrome.runtime.sendMessage({ answer: "No answer Received: Make sure the entered API-Key is correct." });
         }
     }
     // return true to indicate that the message has been handled
