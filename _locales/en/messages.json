@@ -3,16 +3,16 @@
     "message": "Options",
     "description": "Title of the options page"
   },
-  "languageTitle": {
-    "message": "Language",
-    "description": "Title of the language section"
-  },
   "apiTitle": {
     "message": "Enter API-Key:",
     "description": "Title of the API-Key section"
   },
-  "lastRequestsTitle": {
-    "message": "Last Requests",
-    "description": "Title of the last requests"
+  "apiModelTitle": {
+    "message": "Choose API-Model:",
+    "description": "Title of the API-Model section"
+  },
+  "lastMessagesTitle": {
+    "message": "Last Messages:",
+    "description": "Title of the last messages section"
   }
 }

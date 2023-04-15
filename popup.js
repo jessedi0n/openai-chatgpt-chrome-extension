@@ -4,20 +4,18 @@ const clearButton = document.getElementById("clear-button");
 const queriesAnswersContainer = document.getElementById("queriesAnswersContainer");
 const showHideWrapper = document.getElementById("show-hide-wrapper");
 
-// Sends a message to the background script to clear prevMessages when popup is opened
-chrome.runtime.sendMessage({ popupOpened: true });
-
-// Disable submit button by default
-if (submitButton) {
-  submitButton.disabled = true;
-}
-
-// When the popup is opened, focus on the input field
+// send a message to the background script to reset the message array
+chrome.runtime.sendMessage({ openedPopup: true });
+// focus on the input field
 queryInput.focus();
 
-// If the input is "" then disable the submit button
-queryInput.addEventListener("input", () => {
-  submitButton.disabled = !queryInput.value;
+// disable the submit button if the input field is empty
+queryInput.addEventListener("keyup", () => {
+  if (queryInput.value === "") {
+    submitButton.disabled = true;
+  } else {
+    submitButton.disabled = false;
+  }
 });
 
 // If the user presses enter, click the submit button
@@ -118,10 +116,10 @@ function displayQueriesAnswers() {
 
 // Listen for clicks on the submit button
 submitButton.addEventListener("click", () => {
-  // Get the query from the input field
-  const query = queryInput.value;
+  // Get the message from the input field
+  const message = queryInput.value;
   // Send the query to the background script
-  chrome.runtime.sendMessage({ query });
+  chrome.runtime.sendMessage({ input: message });
   // Clear the answer
   document.getElementById("answer").innerHTML = "";
   // Hide the answer
@@ -179,8 +177,7 @@ const showHideLastAnswerButton = document.getElementById('show-hide-last-answer-
 queriesAnswersContainer.style.display = "none";
 showHideWrapper.style.display = "none";
 // Get localised strings
-document.getElementById("lastRequestsTitle").innerText =
-  chrome.i18n.getMessage("lastRequestsTitle");
+document.getElementById("lastRequestsTitle").innerText = chrome.i18n.getMessage("lastMessagesTitle");
 // Add a click event listener to the button
 showHideLastAnswerButton.addEventListener('click', () => {
   // If the last answer is currently hidden
