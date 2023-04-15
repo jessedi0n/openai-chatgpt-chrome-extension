@@ -1,7 +1,7 @@
 {
-    "name": "OpenAI Chromium Extension",
-    "version": "1.0",
-    "description": "This extension allows you to use OpenAI's GPT-3 API to generate text from a prompt.",
+    "name": "OpenAI ChatGPT Chromium Extension",
+    "version": "1.1",
+    "description": "This extension allows you to access OpenAI's chat-based language models on any website.",
     "default_locale": "en",
     "icons": {
         "16": "images/icon-16.png",

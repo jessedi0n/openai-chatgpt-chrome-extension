@@ -19,7 +19,6 @@ p {
     color: white;
 }
 
-
 #answerWrapper {
     display: none;
     background-color: #333333;
@@ -190,7 +189,7 @@ p {
     position: relative;
     margin: 0 -5%;
     overflow: hidden;
-  }
+}
 
 .dot-flashing {
     position: relative;
@@ -202,14 +201,17 @@ p {
     animation: dot-flashing 1s infinite linear alternate;
     animation-delay: 0.5s;
     left: 30px;
-  }
-  .dot-flashing::before, .dot-flashing::after {
+}
+
+.dot-flashing::before,
+.dot-flashing::after {
     content: "";
     display: inline-block;
     position: absolute;
     top: 0;
-  }
-  .dot-flashing::before {
+}
+
+.dot-flashing::before {
     left: -15px;
     width: 10px;
     height: 10px;
@@ -218,8 +220,9 @@ p {
     color: #ffffff;
     animation: dot-flashing 1s infinite alternate;
     animation-delay: 0s;
-  }
-  .dot-flashing::after {
+}
+
+.dot-flashing::after {
     left: 15px;
     width: 10px;
     height: 10px;
@@ -228,13 +231,15 @@ p {
     color: #ffffff;
     animation: dot-flashing 1s infinite alternate;
     animation-delay: 1s;
-  }
-  
-  @keyframes dot-flashing {
+}
+
+@keyframes dot-flashing {
     0% {
-      background-color: #ffffff;
+        background-color: #ffffff;
     }
-    50%, 100% {
-      background-color: rgba(196, 196, 198, 0.2);
+
+    50%,
+    100% {
+        background-color: rgba(196, 196, 198, 0.2);
     }
-  }
+}
