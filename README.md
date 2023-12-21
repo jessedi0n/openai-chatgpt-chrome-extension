@@ -1,4 +1,4 @@
-# OpenAI ChatGPT Chromium Extension
+# OpenAI ChatGPT Chrome Extension
 
 This extension uses the magic of OpenAI's GPT language models to ensure a seamless ChatGPT experience, enabling you to pose questions or make statements and receive instant model-generated responses — all without leaving your favorite website.
 
