@@ -2,7 +2,7 @@
 
 This extension uses the magic of OpenAI's GPT language models to ensure a seamless ChatGPT experience, enabling you to pose questions or make statements and receive instant model-generated responses — all without leaving your favorite website.
 
-![Extension Preview 1](https://github.com/jessedi0n/openai-chatgpt-chrome-extension/blob/main/assets/preview-1.png)
+<img src='assets/preview-1.png' width='400' alt='Extension Preview 1' />
 
 ## Getting started
     
