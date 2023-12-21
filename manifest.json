@@ -1,26 +1,25 @@
 {
-    "name": "OpenAI ChatGPT Chromium Extension",
-    "version": "1.1",
-    "description": "This extension allows you to access OpenAI's chat-based language models on any website.",
+    "name": "OpenAI ChatGPT Chrome Extension",
+    "version": "2.0",
+    "description": "Have a seamless ChatGPT experience, without ever leaving your favorite website.",
     "default_locale": "en",
     "icons": {
-        "16": "images/icon-16.png",
-        "32": "images/icon-32.png",
-        "96": "images/icon-96.png"
+        "16": "assets/icons/icon-16.png",
+        "48": "assets/icons/icon-48.png",
+        "128": "assets/icons/icon-128.png"
     },
     "host_permissions": [
         "https://api.openai.com/v1/completions"
     ],
     "permissions": [
-        "storage",
-        "tabs"
+        "storage"
     ],
     "background": {
         "service_worker": "background.js"
     },
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "popup/popup.html"
     },
-    "options_page": "options.html",
+    "options_page": "options/options.html",
     "manifest_version": 3
 }

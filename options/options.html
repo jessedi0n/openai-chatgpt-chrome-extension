@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Options</title>
+  <link rel="stylesheet" href="options.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1 id="optionsTitle"></h1>
+    <p id="apiTitle"></p>
+    <div id="input-container">
+      <input type="text" id="apiKey">
+      <button id="save-button" title="Save API key">
+        <i class="fa fa-save"></i>
+        <span id="save-button-text"></span>
+      </button>
+    </div>
+    <div id="delete-container">
+      <button id="delete-button" title="Delete API key">
+        <i class="fa fa-trash"></i>
+        <span id="delete-button-text"></span>
+      </button>
+      <p id="status-message"></p>
+    </div>
+    <p id="api-key-note" class="note"></p>
+  </div>
+  <script src="options.js"></script>
+</body>
+
+</html>

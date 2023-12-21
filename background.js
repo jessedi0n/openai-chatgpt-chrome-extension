@@ -1,83 +1,103 @@
-// on first install open the options page to set the API key
-chrome.runtime.onInstalled.addListener(function (details) {
-    if (details.reason == "install") {
-        chrome.tabs.create({ url: "options.html" });
-    }
+// Initialize chat history
+let chatHistory;
+
+// Listen for when the extension is installed
+chrome.runtime.onInstalled.addListener(function () {
+    // Set default API model
+    let defaultModel = "gpt-3.5-turbo-1106";
+    chrome.storage.local.set({ apiModel: defaultModel });
+
+    // Set empty chat history
+    chrome.storage.local.set({ chatHistory: [] });
+
+    // Open the options page
+    chrome.runtime.openOptionsPage();
 });
 
-// get the current time for context in the system message
-let time = new Date().toLocaleString('en-US');
+// Listen for messages from the popup script
+chrome.runtime.onMessage.addListener(async function (message, sender, sendResponse) {
 
-// create a system message
-const systemMessage = "You are a helpful chat bot. Your answer should not be too long. current time: " + time;
+    if (message.userInput) {
 
-// initialize the message array with a system message
-let messageArray = [
-    { role: "system", content: systemMessage }
-];
+        // Get the API key from local storage
+        const { apiKey } = await getStorageData(["apiKey"]);
+        // Get the model from local storage
+        const { apiModel } = await getStorageData(["apiModel"]);
 
-// a event listener to listen for a message from the content script that says the user has openend the popup
-chrome.runtime.onMessage.addListener(function (request) {
-    // check if the request contains a message that the user has opened the popup
-    if (request.openedPopup) {
-        // reset the message array to remove the previous conversation
-        messageArray = [
-            { role: "system", content: systemMessage }
-        ];
-    }
-});
+        // get the chat history from local storage
+        const result = await getStorageData(["chatHistory"]);
 
-// listen for a request message from the content script
-chrome.runtime.onMessage.addListener(async function (request) {
-    // check if the request contains a message that the user sent a new message
-    if (request.input) {
-        // get the API key from local storage
-        let apiKey = await new Promise(resolve => chrome.storage.local.get(['apiKey'], result => resolve(result.apiKey)));
+        if (!result.chatHistory || result.chatHistory.length === 0) {
+            chatHistory = [
+                { role: "system", content: "I'm your helpful chat bot! I provide helpful and concise answers." },
+            ];
+        } else {
+            chatHistory = result.chatHistory;
+        }
 
-        // get the API model from local storage
-        let apiModel = await new Promise(resolve => chrome.storage.local.get(['apiModel'], result => resolve(result.apiModel)));
+        // save user's message to message array
+        chatHistory.push({ role: "user", content: message.userInput });
 
-        // Add the user's message to the message array
-        messageArray.push({ role: "user", "content": request.input });
+        // Send the user's message to the OpenAI API
+        const response = await sendRequest(chatHistory, apiKey, apiModel);
 
-        try {
-            // send the request containing the messages to the OpenAI API
-            let response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    "model": apiModel,
-                    "messages": messageArray
-                })
-            });
+        if (response && response.choices && response.choices.length > 0) {
 
-            // check if the API response is ok Else throw an error
-            if (!response.ok) {
-                throw new Error(`Failed to fetch. Status code: ${response.status}`);
-            }
+            // Get the assistant's response
+            const assistantResponse = response.choices[0].message.content;
 
-            // get the data from the API response as json
-            let data = await response.json();
+            // Add the assistant's response to the message array
+            chatHistory.push({ role: "assistant", content: assistantResponse });
 
-            // check if the API response contains an answer
-            if (data && data.choices && data.choices.length > 0) {
-                // get the answer from the API response
-                let response = data.choices[0].message.content;
+            // save message array to local storage
+            chrome.storage.local.set({ chatHistory: chatHistory });
 
-                // send the answer back to the content script
-                chrome.runtime.sendMessage({ answer: response });
+            // Send the assistant's response to the popup script
+            chrome.runtime.sendMessage({ answer: assistantResponse });
 
-                // Add the response from the assistant to the message array
-                messageArray.push({ role: "assistant", "content": response });
-            }
-        } catch (error) {
-            // send error message back to the content script
-            chrome.runtime.sendMessage({ answer: "No answer Received: Make sure the entered API-Key is correct." });
+            console.log("Sent response to popup:", assistantResponse);
         }
     }
-    // return true to indicate that the message has been handled
-    return true;
+
+    return true; // Enable response callback
 });
+
+// Fetch data from the OpenAI API
+async function sendRequest(messages, apiKey, apiModel) {
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                "messages": messages,
+                "model": apiModel,
+            })
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Unauthorized - Incorrect API key
+                throw new Error("Looks like your API key is incorrect. Please check your API key and try again.");
+            } else {
+                throw new Error(`Failed to fetch. Status code: ${response.status}`);
+            }
+        }
+
+        return await response.json();
+    } catch (error) {
+        // Send a response to the popup script
+        chrome.runtime.sendMessage({ error: error.message });
+
+        console.error(error);
+    }
+}
+
+// Get data from local storage
+function getStorageData(keys) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(keys, (result) => resolve(result));
+    });
+}
