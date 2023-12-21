@@ -4,7 +4,7 @@
     "description": "Title of the options page"
   },
   "apiTitle": {
-    "message": "Enter API-Key:",
+    "message": "Enter your OpenAI API key below to get started.",
     "description": "Title of the API-Key section"
   },
   "apiModelTitle": {
@@ -14,5 +14,21 @@
   "lastMessagesTitle": {
     "message": "Last Messages:",
     "description": "Title of the last messages section"
+  },
+  "optionsInputPlaceholder": {
+    "message": "Enter your API key here",
+    "description": "Placeholder of the API-Key input"
+  },
+  "optionsApiKeyNote": {
+    "message": "Note: Your API key will only be stored locally on your computer and nowhere else.",
+    "description": "Note about the API-Key"
+  },
+  "optionsSaveButtonText": {
+    "message": "Save",
+    "description": "Text of the save button"
+  },
+  "optionsDeleteButtonText": {
+    "message": "Delete API key",
+    "description": "Text of the delete button"
   }
 }
