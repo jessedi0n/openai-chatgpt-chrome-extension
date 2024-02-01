@@ -1,8 +1,12 @@
 body {
     margin: 0;
-    width: 400px;
+    min-width: 350px;
+    min-height: 600px;
+    height: 100vh;
     font-size: 14px;
     background-color: #343541;
+    display: flex;
+    flex-direction: column;
 }
 
 h1,
@@ -113,8 +117,9 @@ a {
 }
 
 #chat-container {
-    height: 240px;
-    position: relative;
+    flex-grow: 1;
+    overflow-y: auto;
+    /* position: relative; */
 }
 
 #chat-container::before {
