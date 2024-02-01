@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        checkClearChatBtn();
+        setClearChatBtnAction('Clear chat history')
     });
 
     // focus on the input field
@@ -171,9 +171,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         chatMessages.appendChild(messageElement);
 
-        // enable the clear chat button
-        checkClearChatBtn();
-
         // scroll to the displayed message in the chat-messages div
         messageElement.scrollIntoView();
     }
@@ -182,36 +179,63 @@ document.addEventListener('DOMContentLoaded', function () {
     function displayMessages(messages, displaySystemMessages = false) {
         for (const message of messages) {
             if (message.role !== 'system' || displaySystemMessages) {
-            displayMessage(message.role, message.content);
+                displayMessage(message.role, message.content);
             }
         }
     }
 
-    // fucntion to check if the clear chat button should be enabled or disabled
-    function checkClearChatBtn() {
-        chrome.storage.local.get(['chatHistory'], function (result) {
-            const chatHistory = result.chatHistory || [];
-            if (chatHistory.length > 0) {
-                clearChatBtn.disabled = false;
-            } else {
-                clearChatBtn.disabled = true;
-            }
-        });
+    // Define a variable to store the timeout ID
+    let restoreTimer = undefined;
+
+    function setClearChatBtnDisabled(disabled) {
+        clearChatBtn.disabled = disabled;
+    }
+
+    function setClearChatBtnAction(text) {
+        clearChatBtn.title = text;
     }
 
     // Clear the chat history when the clear chat button is clicked
     clearChatBtn.addEventListener('click', function () {
-        // Display a confirmation popup
-        const isConfirmed = window.confirm('Are you sure you want to clear the chat history?');
+        clearChatBtn.disabled = true;
 
-        // If the user confirms, clear the chat history
-        if (isConfirmed) {
-            chrome.storage.local.set({ chatHistory: [] }, function () {
-                console.log('Chat history cleared');
-                chatMessages.innerHTML = '';
-                sendBtn.disabled = true;
-                checkClearChatBtn();
+        // Check if the timeout is already set
+        if (restoreTimer) {
+            // Restore the chat history
+            chrome.storage.local.get(['chatHistoryBackup'], function (result) {
+                const chatHistory = result.chatHistoryBackup || [];
+                chrome.storage.local.set({ chatHistory: chatHistory }, function () {
+                    console.log('Chat history restored');
+                    setClearChatBtnDisabled(false);
+                    setClearChatBtnAction('Clear chat history');
+                });
+                displayMessages(chatHistory);
             });
+
+            // Clear the timeout
+            clearTimeout(restoreTimer);
+            restoreTimer = undefined;
+        } else {
+            // Clear display of chat history
+            chatMessages.innerHTML = '';
+            sendBtn.disabled = true;
+
+            // Clear and backup the chat history
+            chrome.storage.local.get(['chatHistory'], function (result) {
+                const chatHistory = result.chatHistory || [];
+                chrome.storage.local.set({ chatHistory: [] }, function () {
+                    console.log('Chat history cleared');
+                    setClearChatBtnDisabled(false);
+                    setClearChatBtnAction('Restore chat history');
+                }),
+                chrome.storage.local.set({ chatHistoryBackup: chatHistory }, function () {
+                    console.log('Chat history backed up');
+                });
+            });
+
+            restoreTimer = setTimeout(function () {
+                restoreTimer = undefined;
+            }, 10000);
         }
     });
 
