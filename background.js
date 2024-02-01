@@ -1,7 +1,7 @@
 // helper function that gets the contents of the current tab the user is on
 function getCurrentTabContent() {
     return new Promise((resolve, reject) => {
-        chrome.tabs.query({ active: true }, (tabs) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (chrome.runtime.lastError) {
                 return reject(chrome.runtime.lastError);
             }
