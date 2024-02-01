@@ -1,3 +1,21 @@
+// helper function that gets the contents of the current tab the user is on
+function getCurrentTabContent() {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.query({ active: true }, (tabs) => {
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            let tab = tabs[0];
+            chrome.tabs.sendMessage(tab.id, { method: "getContent" }, (response) => {
+                if (chrome.runtime.lastError) {
+                    return reject(chrome.runtime.lastError);
+                }
+                resolve(response);
+            });
+        });
+    });
+}
+
 // Initialize chat history
 let chatHistory;
 
@@ -27,10 +45,17 @@ chrome.runtime.onMessage.addListener(async function (message, sender, sendRespon
         // get the chat history from local storage
         const result = await getStorageData(["chatHistory"]);
 
+        // get tab content
+        const tabContent = await getCurrentTabContent();
+
         if (!result.chatHistory || result.chatHistory.length === 0) {
             chatHistory = [
-                { role: "system", content: "I'm your helpful chat bot! I provide helpful and concise answers." },
+                { role: "system", content: "You are a helpful chat bot! The user will ask you questions, and you should provide helpful and concise answers in the language that the user uses." },
             ];
+            
+            if (tabContent.data) {
+                chatHistory.push({ role: "system", content: "The user has opened a web page. If needed, you can use the content of the web page as context. The content is below:" + tabContent.data})
+            }
         } else {
             chatHistory = result.chatHistory;
         }

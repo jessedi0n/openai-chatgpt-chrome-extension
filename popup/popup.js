@@ -16,9 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const chatHistory = result.chatHistory || [];
 
         if (chatHistory.length > 0) {
-            // hide the system message
-            chatHistory.shift();
-
             // display the chat history
             displayMessages(chatHistory);
 
@@ -182,9 +179,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Function to display an array of messages
-    function displayMessages(messages) {
+    function displayMessages(messages, displaySystemMessages = false) {
         for (const message of messages) {
+            if (message.role !== 'system' || displaySystemMessages) {
             displayMessage(message.role, message.content);
+            }
         }
     }
 
