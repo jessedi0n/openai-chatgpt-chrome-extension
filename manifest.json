@@ -14,7 +14,8 @@
     "permissions": [
         "storage",
         "tabs",
-        "activeTab"
+        "activeTab",
+        "sidePanel"
     ],
     "background": {
         "service_worker": "background.js"
@@ -27,6 +28,9 @@
     ],
     "action": {
         "default_popup": "popup/popup.html"
+    },
+    "side_panel": {
+        "default_path": "popup/popup.html"
     },
     "options_page": "options/options.html",
     "manifest_version": 3
