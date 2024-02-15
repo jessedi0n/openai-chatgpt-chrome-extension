@@ -2,7 +2,7 @@
 
 This extension uses the magic of OpenAI's chat and image models to ensure a seamless ChatGPT-Like experience - all without ever having to leave your favorite website. Start a A.I. powered conversation or generate stunning images with just a few clicks.
 
-<div style="display: flex; gap: 20px;">
+<div style="display: flex; gap: 20px; justify-content: start; align-items: start;">
     <img src='assets/preview-1.png' width='400' alt='Chat Completion Preview' />
     <img src='assets/preview-2.png' width='400' alt='Image Generation Preview' />
 </div>
