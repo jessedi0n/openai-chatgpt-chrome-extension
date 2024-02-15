@@ -113,7 +113,7 @@ a {
 }
 
 #chat-container {
-    height: 240px;
+    height: 320px;
     position: relative;
 }
 
@@ -173,12 +173,12 @@ a {
     margin-left: auto;
 }
 
-.copy-btn {
+.action-btn {
     color: #008001;
     cursor: pointer;
 }
 
-.copy-btn:hover {
+.action-btn:hover {
     color: #006600;
 }
 

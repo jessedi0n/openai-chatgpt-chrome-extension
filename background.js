@@ -38,32 +38,55 @@ chrome.runtime.onMessage.addListener(async function (message, sender, sendRespon
         // save user's message to message array
         chatHistory.push({ role: "user", content: message.userInput });
 
-        // Send the user's message to the OpenAI API
-        const response = await sendRequest(chatHistory, apiKey, apiModel);
+        if (apiModel === "dall-e-3") {
+            // Send the user's message to the OpenAI API
+            const response = await fetchImage(message.userInput, apiKey, apiModel);
 
-        if (response && response.choices && response.choices.length > 0) {
+            if (response && response.data && response.data.length > 0) {
+                // Get the image URL
+                const imageUrl = response.data[0].url;
 
-            // Get the assistant's response
-            const assistantResponse = response.choices[0].message.content;
+                // Add the assistant's response to the message array
+                chatHistory.push({ role: "assistant", content: imageUrl });
 
-            // Add the assistant's response to the message array
-            chatHistory.push({ role: "assistant", content: assistantResponse });
+                // save message array to local storage
+                chrome.storage.local.set({ chatHistory: chatHistory });
 
-            // save message array to local storage
-            chrome.storage.local.set({ chatHistory: chatHistory });
+                // Send the image URL to the popup script
+                chrome.runtime.sendMessage({ imageUrl: imageUrl });
 
-            // Send the assistant's response to the popup script
-            chrome.runtime.sendMessage({ answer: assistantResponse });
+                console.log("Sent image URL to popup:", imageUrl);
+            }
+            return true; // Enable response callback
+        } else {
+            // Send the user's message to the OpenAI API
+            const response = await fetchChatCompletion(chatHistory, apiKey, apiModel);
 
-            console.log("Sent response to popup:", assistantResponse);
+            if (response && response.choices && response.choices.length > 0) {
+
+                // Get the assistant's response
+                const assistantResponse = response.choices[0].message.content;
+
+                // Add the assistant's response to the message array
+                chatHistory.push({ role: "assistant", content: assistantResponse });
+
+                // save message array to local storage
+                chrome.storage.local.set({ chatHistory: chatHistory });
+
+                // Send the assistant's response to the popup script
+                chrome.runtime.sendMessage({ answer: assistantResponse });
+
+                console.log("Sent response to popup:", assistantResponse);
+            }
+            return true; // Enable response callback
         }
     }
 
     return true; // Enable response callback
 });
 
-// Fetch data from the OpenAI API
-async function sendRequest(messages, apiKey, apiModel) {
+// Fetch data from the OpenAI Chat Completion API
+async function fetchChatCompletion(messages, apiKey, apiModel) {
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -74,6 +97,41 @@ async function sendRequest(messages, apiKey, apiModel) {
             body: JSON.stringify({
                 "messages": messages,
                 "model": apiModel,
+            })
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Unauthorized - Incorrect API key
+                throw new Error("Looks like your API key is incorrect. Please check your API key and try again.");
+            } else {
+                throw new Error(`Failed to fetch. Status code: ${response.status}`);
+            }
+        }
+
+        return await response.json();
+    } catch (error) {
+        // Send a response to the popup script
+        chrome.runtime.sendMessage({ error: error.message });
+
+        console.error(error);
+    }
+}
+
+// Fetch Image from the OpenAI DALL-E API
+async function fetchImage(prompt, apiKey, apiModel) {
+    try {
+        const response = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                "prompt": prompt,
+                "model": apiModel,
+                "n": 1,
+                "size": "1024x1024",
             })
         });
 

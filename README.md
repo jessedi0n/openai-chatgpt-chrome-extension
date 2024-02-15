@@ -1,6 +1,6 @@
 # OpenAI ChatGPT Chrome Extension
 
-This extension uses the magic of OpenAI's GPT language models to ensure a seamless ChatGPT experience, enabling you to pose questions or make statements and receive instant model-generated responses — all without leaving your favorite website.
+This extension uses the magic of OpenAI's chat and image models to ensure a seamless ChatGPT-Like experience - all without ever having to leave your favorite website. Start a A.I. powered conversation or generate stunning images with just a few clicks.
 
 <img src='assets/preview-1.png' width='400' alt='Extension Preview 1' />
 
@@ -16,10 +16,11 @@ The extension should now be installed and ready to use. The Extension can be ope
 
 ## Features
 
- - Easy access to the OpenAI ChatGPT language models from any website
- - Seamlessly switch between the different language models
+ - Easy access to the OpenAI language and images models without leaving your favorite website
+ - Seamlessly switch between different models
  - Copy the generated text with one click
- - API-Key is stored locally on your machine
+ - Download the generated image with one click
+ - API-Key is safely stored in the browser's local storage and never leaves your device
 
 ## Note
 

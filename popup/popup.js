@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sendBtn = document.getElementById('send-btn');
     const clearChatBtn = document.getElementById('clear-chat-btn');
 
+    let isImageGenerationActive = false;
+
     // If the user has not entered an API key, open the options page
     chrome.storage.local.get('apiKey', ({ apiKey }) => {
         if (!apiKey || apiKey.length < 10) {
@@ -80,6 +82,9 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (message.error) {
             // Display the error message
             displayMessage('system', message.error);
+        } else if (message.imageUrl) {
+            // Display the image in the chat
+            displayMessage('assistant', message.imageUrl);
         }
 
         // Enable the send button again
@@ -93,9 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to send user's input to the background script and display it in the chat
     function sendMessage(userMessage) {
-        // Create a message object
         const message = { userInput: userMessage };
-
         // Send the user's message to the background script
         chrome.runtime.sendMessage(message);
 
@@ -110,68 +113,118 @@ document.addEventListener('DOMContentLoaded', function () {
         messageElement.classList.add('message');
         messageElement.classList.add(role);
 
-        // Check if the message contains code blocks
-        content = content.replace(/```(\w+)([\s\S]*?)```/g, function (match, lang, code) {
+        // check of message starts with a dall-e image URL
+        if (content.startsWith('https://oaidalleapiprodscus.blob.core.windows.net/')) {
+            const imageElement = document.createElement('img');
+            imageElement.src = content;
+            messageElement.appendChild(imageElement);
 
-            // Create a code element
-            var codeElement = document.createElement('code');
-            // remove the first line break from the code
-            code = code.replace(/^\n/, '');
-            //
-            codeElement.innerText = code;
+            // add a download button to the message if it's from the assistant
+            if (role === 'assistant') {
+                // create container for the action buttons
+                const actionBtns = document.createElement('div');
+                actionBtns.className = 'action-btns';
 
-            // Create a container for the code element
-            var codeContainer = document.createElement('div');
-            codeContainer.appendChild(codeElement);
+                // add the action buttons to the message
+                messageElement.appendChild(actionBtns);
 
-            // Set the class of the container based on the language (optional)
-            codeContainer.className = 'code-block';
-
-            // Return the HTML content with the replaced code
-            return codeContainer.outerHTML;
-        });
-
-        // Append the replaced content to the message container
-        messageElement.innerText = content;
-
-        // add a copy button to the message if it's from the assistant
-        if (role === 'assistant') {
-            // create container for the action buttons
-            const actionBtns = document.createElement('div');
-            actionBtns.className = 'action-btns';
-
-            // add the action buttons to the message
-            messageElement.appendChild(actionBtns);
-
-            const copyIcon = document.createElement('i');
-            copyIcon.className = 'fa fa-copy copy-btn';
-            copyIcon.title = 'Copy to clipboard';
-            copyIcon.addEventListener('click', function () {
-                // Copy the message to the clipboard
-                navigator.clipboard.writeText(content)
-                    .then(() => {
-                        // Change the icon to a check
-                        copyIcon.className = 'fa fa-check copy-btn';
-
-                        // Revert to the default icon after 2 seconds
-                        setTimeout(() => {
-                            copyIcon.className = 'fa fa-copy copy-btn';
-                        }, 2000);
+                const downloadIcon = document.createElement('i');
+                downloadIcon.className = 'fa fa-download download-btn';
+                downloadIcon.title = 'Download image';
+                downloadIcon.addEventListener('click', function () {
+                    // download image to the user's device
+                    chrome.downloads.download({
+                        url: content,
+                        filename: 'dall-e-image.png',
+                        saveAs: false
                     })
-                    // Display an x icon if the copy operation fails
-                    .catch(() => {
-                        copyIcon.className = 'fa fa-times copy-btn';
+                        .then(() => {
+                            // Change the icon to a check
+                            downloadIcon.className = 'fa fa-check action-btn';
 
-                        // Revert to the default icon after 2 seconds
-                        setTimeout(() => {
-                            copyIcon.className = 'fa fa-copy copy-btn';
-                        }, 2000);
-                    });
+                            // Revert to the default icon after 2 seconds
+                            setTimeout(() => {
+                                downloadIcon.className = 'fa fa-download action-btn';
+                            }, 2000);
+                        })
+                        // Display an x icon if the copy operation fails
+                        .catch(() => {
+                            downloadIcon.className = 'fa fa-times action-btn';
+
+                            // Revert to the default icon after 2 seconds
+                            setTimeout(() => {
+                                downloadIcon.className = 'fa fa-download action-btn';
+                            }, 2000);
+                        });
+
+                });
+
+                actionBtns.appendChild(downloadIcon);
+            }
+
+        } else { // if it's not an image, it's a text message
+            // Check if the message contains code blocks
+            content = content.replace(/```(\w+)([\s\S]*?)```/g, function (match, lang, code) {
+                // Create a code element
+                var codeElement = document.createElement('code');
+                // remove the first line break from the code
+                code = code.replace(/^\n/, '');
+                //
+                codeElement.innerText = code;
+
+                // Create a container for the code element
+                var codeContainer = document.createElement('div');
+                codeContainer.appendChild(codeElement);
+
+                // Set the class of the container based on the language (optional)
+                codeContainer.className = 'code-block';
+
+                // Return the HTML content with the replaced code
+                return codeContainer.outerHTML;
             });
 
-            actionBtns.appendChild(copyIcon);
-        }
+            // Append the replaced content to the message container
+            messageElement.innerText = content;
 
+            // add a copy button to the message if it's from the assistant
+            if (role === 'assistant') {
+                // create container for the action buttons
+                const actionBtns = document.createElement('div');
+                actionBtns.className = 'action-btns';
+
+                // add the action buttons to the message
+                messageElement.appendChild(actionBtns);
+
+                const copyIcon = document.createElement('i');
+                copyIcon.className = 'fa fa-copy action-btn';
+                copyIcon.title = 'Copy to clipboard';
+                copyIcon.addEventListener('click', function () {
+                    // Copy the message to the clipboard
+                    navigator.clipboard.writeText(content)
+                        .then(() => {
+                            // Change the icon to a check
+                            copyIcon.className = 'fa fa-check action-btn';
+
+                            // Revert to the default icon after 2 seconds
+                            setTimeout(() => {
+                                copyIcon.className = 'fa fa-copy action-btn';
+                            }, 2000);
+                        })
+                        // Display an x icon if the copy operation fails
+                        .catch(() => {
+                            copyIcon.className = 'fa fa-times action-btn';
+
+                            // Revert to the default icon after 2 seconds
+                            setTimeout(() => {
+                                copyIcon.className = 'fa fa-copy action-btn';
+                            }, 2000);
+                        });
+                });
+
+                actionBtns.appendChild(copyIcon);
+            }
+
+        }
         chatMessages.appendChild(messageElement);
 
         // enable the clear chat button
