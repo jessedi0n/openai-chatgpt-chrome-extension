@@ -4,7 +4,7 @@ let chatHistory;
 // Listen for when the extension is installed
 chrome.runtime.onInstalled.addListener(function () {
     // Set default API model
-    let defaultModel = "gpt-3.5-turbo-1106";
+    let defaultModel = "gpt-4-turbo";
     chrome.storage.local.set({ apiModel: defaultModel });
 
     // Set empty chat history

@@ -76,9 +76,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Listen for messages from the background script
     chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-        if (message.answer) {
+        if (message.answer || message.imageUrl) {
             // Display the assistant's response
-            displayMessage('assistant', message.answer);
+            displayMessage('assistant', message.answer || message.imageUrl);
         } else if (message.error) {
             // Display the error message
             displayMessage('system', message.error);
@@ -163,28 +163,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
         } else { // if it's not an image, it's a text message
-            // Check if the message contains code blocks
-            content = content.replace(/```(\w+)([\s\S]*?)```/g, function (match, lang, code) {
-                // Create a code element
-                var codeElement = document.createElement('code');
-                // remove the first line break from the code
-                code = code.replace(/^\n/, '');
-                //
-                codeElement.innerText = code;
+            // format the message content
+            content = formatMessageContent(content);
 
-                // Create a container for the code element
-                var codeContainer = document.createElement('div');
-                codeContainer.appendChild(codeElement);
-
-                // Set the class of the container based on the language (optional)
-                codeContainer.className = 'code-block';
-
-                // Return the HTML content with the replaced code
-                return codeContainer.outerHTML;
-            });
-
-            // Append the replaced content to the message container
-            messageElement.innerText = content;
+            // add the message content to the message element
+            messageElement.innerHTML = content;
 
             // add a copy button to the message if it's from the assistant
             if (role === 'assistant') {
@@ -232,6 +215,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // scroll to the displayed message in the chat-messages div
         messageElement.scrollIntoView();
+    }
+
+    function formatMessageContent(text) {
+        return text.replace(/```(\w+)([\s\S]*?)```/g, function (match, lang, code) {
+            // Create a code element
+            var codeElement = document.createElement('code');
+            // remove the first line break from the code
+            code = code.replace(/^\n/, '');
+
+            // Add the code to the code element
+            codeElement.innerText = code;
+
+            // Create a container for the code element
+            var codeContainer = document.createElement('div');
+            codeContainer.appendChild(codeElement);
+
+            // Set the class of the container based on the language (optional)
+            codeContainer.className = 'code-block';
+
+            // Return the HTML content with the replaced code
+            return codeContainer.outerHTML;
+        });
     }
 
     // Function to display an array of messages
@@ -316,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Function to set the active model in the dropdown
     function setActiveModel(model) {
         // add active class to the button and remove it from the other buttons
         dropdownButtons.forEach(function (button) {
