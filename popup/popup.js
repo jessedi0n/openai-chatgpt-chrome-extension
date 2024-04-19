@@ -39,19 +39,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // disable the send button if the input field is empty
     userInput.addEventListener('keyup', function () {
-        if (userInput.value === '') {
-            sendBtn.disabled = true;
-        } else {
-            sendBtn.disabled = false;
-        }
+        const userMessage = userInput.value.trim();
+        sendBtn.disabled = userMessage === '';
     });
 
     // If the user presses enter, click the send button
     userInput.addEventListener('keyup', function (event) {
-        if (event.code === 'Enter') {
+        if (event.code === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             sendBtn.click();
         }
+    });
+
+    // Auto-resize the input field based on the content
+    userInput.addEventListener('input', function () {
+        this.style.height = 'auto'; // Reset the height
+        // Set the height of the input field based on the content
+        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        // Enable scrolling if the content is too long
+        this.style.overflowY = this.scrollHeight > 100 ? 'scroll' : 'auto';
     });
 
     // Send user's input to background script when the send button is clicked

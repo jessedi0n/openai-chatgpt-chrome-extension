@@ -106,10 +106,15 @@ a {
     width: 100%;
     outline: none;
     color: white;
-    padding: 0.5rem;
+    font-family: inherit;
+    padding: 10px;
     background-color: #444654;
     border-radius: 12px;
     border: none;
+    resize: none;
+    min-height: 38px;
+    max-height: 100px;
+    height: auto;
 }
 
 #chat-container {
@@ -195,6 +200,7 @@ a {
     border: 1px solid #444654;
     cursor: pointer;
     width: 38px;
+    height: 38px;
 }
 
 #send-btn:disabled {
