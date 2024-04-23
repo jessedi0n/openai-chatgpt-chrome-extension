@@ -4,8 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const sendBtn = document.getElementById('send-btn');
     const clearChatBtn = document.getElementById('clear-chat-btn');
 
-    let isImageGenerationActive = false;
-
     // If the user has not entered an API key, open the options page
     chrome.storage.local.get('apiKey', ({ apiKey }) => {
         if (!apiKey || apiKey.length < 10) {
@@ -18,14 +16,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const chatHistory = result.chatHistory || [];
 
         if (chatHistory.length > 0) {
-            // hide the system message
-            chatHistory.shift();
-
             // display the chat history
             displayMessages(chatHistory);
 
             // scroll to bottom of chat-messages div    
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            // show a image of the icon and a text with "how can I help you?"
+            displayAssistanInfo();
         }
 
         checkClearChatBtn();
@@ -74,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // disable input field while the assistant is typing
             userInput.disabled = true;
+            userInput.style.height = 'auto'; // Reset the height
 
             // scroll to bottom of chat-messages div
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -107,7 +106,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const message = { userInput: userMessage };
         // Send the user's message to the background script
         chrome.runtime.sendMessage(message);
-
+        if (document.getElementById('assistant-info-wrapper')) {
+            hideAssistanInfo();
+        }
         // Display the user's message in the chat
         displayMessage('user', userMessage);
     }
@@ -248,7 +249,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to display an array of messages
     function displayMessages(messages) {
         for (const message of messages) {
-            displayMessage(message.role, message.content);
+            if (message.role !== 'system') {
+                displayMessage(message.role, message.content);
+            }
         }
     }
 
@@ -276,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 chatMessages.innerHTML = '';
                 sendBtn.disabled = true;
                 checkClearChatBtn();
+                displayAssistanInfo();
             });
         }
     });
@@ -345,4 +349,33 @@ document.addEventListener('DOMContentLoaded', function () {
             setActiveModel(result.apiModel);
         }
     });
+
+    function displayAssistanInfo() {
+        // Create a div element for the message
+        const messageElement = document.createElement('div');
+        messageElement.id = 'assistant-info-wrapper';
+
+        // Create an img element for the icon
+        const icon = document.createElement('img');
+        icon.src = '/assets/icons/icon-128.png';
+        icon.alt = 'Assistant icon';
+        icon.className = 'assistant-info-icon';
+        messageElement.appendChild(icon);
+
+        // Create a p element for the text
+        const text = document.createElement('p');
+        text.innerText = 'How can I help you?';
+        text.className = 'assistant-info-text';
+        messageElement.appendChild(text);
+
+        // Append the message element to the chatMessages container
+        chatMessages.appendChild(messageElement);
+    }
+
+    function hideAssistanInfo() {
+        const assistantInfo = document.getElementById('assistant-info-wrapper');
+        if (assistantInfo) {
+            assistantInfo.remove();
+        }
+    }
 });
