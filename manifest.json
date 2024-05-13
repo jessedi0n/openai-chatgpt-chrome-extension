@@ -1,6 +1,6 @@
 {
     "name": "OpenAI ChatGPT Chrome Extension",
-    "version": "2.1.2",
+    "version": "2.1.3",
     "description": "Have a seamless ChatGPT experience or generate stunning images, all without ever having to leave your favorite website.",
     "default_locale": "en",
     "icons": {
