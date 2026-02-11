@@ -53,7 +53,7 @@ a {
 
 #chat-messages::-webkit-scrollbar-track,
 .code-block::-webkit-scrollbar-track {
-    background: #1b1b1b;
+    background: transparent;
     border-radius: 9999px;
 }
 
@@ -336,6 +336,31 @@ a {
 
 .assistant-link:hover {
     color: #a7c7ff;
+}
+
+.assistant-markdown-heading {
+    margin: 0;
+    color: #f3f3f3;
+    line-height: 1.35;
+    font-weight: 650;
+}
+
+.assistant-markdown-heading-level-1 {
+    font-size: 1.18rem;
+}
+
+.assistant-markdown-heading-level-2 {
+    font-size: 1.07rem;
+}
+
+.assistant-markdown-heading-level-3 {
+    font-size: 1rem;
+}
+
+.assistant-markdown-heading-level-4,
+.assistant-markdown-heading-level-5,
+.assistant-markdown-heading-level-6 {
+    font-size: 0.95rem;
 }
 
 .user {
@@ -672,7 +697,17 @@ a {
     padding: 10px;
     border-radius: 12px;
     border: 1px solid #2b2b2b;
-    overflow: scroll;
+    margin: 0;
+    overflow: auto;
+    white-space: pre;
+}
+
+.code-block code.hljs {
+    display: block;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    white-space: inherit;
 }
 
 #assistant-info-wrapper {

@@ -691,9 +691,9 @@ class PopupApp {
             }
 
             const codeElement = document.createElement("code");
-            codeElement.innerText = segment.value.replace(/^\n/, "");
+            applyCodeHighlighting(codeElement, segment.value.replace(/^\n/, ""), segment.language);
 
-            const codeContainer = document.createElement("div");
+            const codeContainer = document.createElement("pre");
             codeContainer.className = "code-block";
             codeContainer.appendChild(codeElement);
             fragment.appendChild(codeContainer);
@@ -1317,7 +1317,11 @@ function parseCodeFenceSegments(text) {
             segments.push({ type: "text", value: input.slice(cursor, match.index) });
         }
 
-        segments.push({ type: "code", value: match[2] || "" });
+        segments.push({
+            type: "code",
+            value: match[2] || "",
+            language: normalizeCodeLanguageHint(match[1] || ""),
+        });
         cursor = match.index + match[0].length;
         match = CODE_BLOCK_REGEX.exec(input);
     }
@@ -1332,6 +1336,63 @@ function parseCodeFenceSegments(text) {
 
     CODE_BLOCK_REGEX.lastIndex = 0;
     return segments;
+}
+
+function applyCodeHighlighting(codeElement, rawCode, languageHint) {
+    if (!(codeElement instanceof HTMLElement)) {
+        return;
+    }
+
+    const normalizedCode = typeof rawCode === "string" ? rawCode : String(rawCode || "");
+    const normalizedLanguageHint = normalizeCodeLanguageHint(languageHint);
+    if (normalizedLanguageHint) {
+        codeElement.classList.add(`language-${normalizedLanguageHint}`);
+    }
+
+    const highlighter = typeof globalThis === "object" && globalThis && globalThis.hljs ? globalThis.hljs : null;
+    if (!highlighter) {
+        codeElement.innerText = normalizedCode;
+        return;
+    }
+
+    try {
+        const hasExplicitLanguage = normalizedLanguageHint
+            && typeof highlighter.getLanguage === "function"
+            && Boolean(highlighter.getLanguage(normalizedLanguageHint));
+
+        if (hasExplicitLanguage && typeof highlighter.highlight === "function") {
+            const highlightedResult = highlighter.highlight(normalizedCode, {
+                language: normalizedLanguageHint,
+                ignoreIllegals: true,
+            });
+            codeElement.innerHTML = highlightedResult.value;
+            return;
+        }
+
+        if (typeof highlighter.highlightAuto === "function") {
+            const highlightedAutoResult = highlighter.highlightAuto(normalizedCode);
+            codeElement.innerHTML = highlightedAutoResult.value;
+            return;
+        }
+    } catch {
+        codeElement.innerText = normalizedCode;
+        return;
+    }
+
+    codeElement.innerText = normalizedCode;
+}
+
+function normalizeCodeLanguageHint(languageHint) {
+    if (typeof languageHint !== "string") {
+        return "";
+    }
+
+    const normalizedLanguage = languageHint.trim().toLowerCase();
+    if (!/^[a-z0-9_+#.-]+$/i.test(normalizedLanguage)) {
+        return "";
+    }
+
+    return normalizedLanguage;
 }
 
 function groupModelsByType(models) {
@@ -1418,6 +1479,18 @@ function appendPlainText(container, text, options) {
     const lines = String(text).split("\n");
     lines.forEach((line, index) => {
         if (shouldParseInlineMarkdown) {
+            const headingInfo = parseMarkdownHeadingLine(line);
+            if (headingInfo) {
+                const headingElement = document.createElement(`h${Math.min(headingInfo.level, 6)}`);
+                headingElement.className = `assistant-markdown-heading assistant-markdown-heading-level-${headingInfo.level}`;
+                appendInlineMarkdown(headingElement, headingInfo.text, {
+                    enableLinks: true,
+                    enableBold: true,
+                });
+                container.appendChild(headingElement);
+                return;
+            }
+
             appendInlineMarkdown(container, line, {
                 enableLinks: true,
                 enableBold: true,
@@ -1430,6 +1503,19 @@ function appendPlainText(container, text, options) {
             container.appendChild(document.createElement("br"));
         }
     });
+}
+
+function parseMarkdownHeadingLine(lineText) {
+    const input = typeof lineText === "string" ? lineText : String(lineText);
+    const match = input.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*$/);
+    if (!match) {
+        return null;
+    }
+
+    return {
+        level: match[1].length,
+        text: match[2],
+    };
 }
 
 function appendInlineMarkdown(container, lineText, options) {

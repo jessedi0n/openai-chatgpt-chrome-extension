@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+**/.DS_Store
+dsfiles
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.crx
+*.pem
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
