@@ -2,22 +2,36 @@
 <html>
 
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="popup.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
     <div id="header-container">
-        <div class="dropdown">
-            <button id="model-dropdown-btn" title="Change model">
-                <i id="model-dropdown-btn-icon" class="fa fa-robot"></i>
-                <span id="model-dropdown-btn-text"></span>
-            </button>
-            <div id="model-dropdown-content">
-                <a id="gpt-3.5-turbo" class="model-dropdown-btn">GPT-3.5-Turbo</a>
-                <a id="gpt-4o" class="model-dropdown-btn">GPT-4o</a>
-                <a id="dall-e-3" class="model-dropdown-btn">DALL-E 3</a>
+        <div id="controls-container">
+            <div id="model-dropdown" class="dropdown">
+                <button id="model-dropdown-btn" class="dropdown-trigger" title="Change model">
+                    <i id="model-dropdown-btn-icon" class="fa fa-robot"></i>
+                    <span id="model-dropdown-btn-text" class="dropdown-label"></span>
+                    <i class="fa fa-chevron-down dropdown-chevron" aria-hidden="true"></i>
+                </button>
+                <div id="model-dropdown-content" class="dropdown-content"></div>
             </div>
+            <div id="thinking-dropdown" class="dropdown">
+                <button id="thinking-dropdown-btn" class="dropdown-trigger" title="Change thinking level">
+                    <i id="thinking-dropdown-btn-icon" class="fa fa-brain"></i>
+                    <span id="thinking-dropdown-btn-text" class="dropdown-label"></span>
+                    <i class="fa fa-chevron-down dropdown-chevron" aria-hidden="true"></i>
+                </button>
+                <div id="thinking-dropdown-content" class="dropdown-content"></div>
+            </div>
+            <button id="web-search-toggle-btn" class="dropdown-trigger" title="Toggle web search">
+                <i class="fa fa-globe"></i>
+                <span class="dropdown-label">Web</span>
+            </button>
         </div>
         <div id="action-btn-container">
             <button id="clear-chat-btn" title="Clear chat">
@@ -32,12 +46,24 @@
         <div id="chat-messages"></div>
     </div>
     <div class="input-container">
+        <button id="attach-btn" title="Add files or images">
+            <i class="fa fa-plus"></i>
+            <span id="attachment-count" hidden>0</span>
+        </button>
         <textarea id="user-input" placeholder="Ask me anything..." rows="1"></textarea>
         <button id="send-btn" title="Send message">
-            <i class="fa fa-paper-plane"></i>
+            <i class="fa fa-arrow-up"></i>
         </button>
     </div>
+    <input
+        id="attachment-input"
+        type="file"
+        hidden
+        multiple
+        accept="image/*,.pdf,.txt,.md,.markdown,.csv,.json,.xml,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+    >
 
+    <script src="../models.js"></script>
     <script src="popup.js"></script>
 </body>
 

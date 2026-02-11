@@ -5,30 +5,95 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
-  <div class="container">
-    <h1 id="optionsTitle"></h1>
-    <p id="apiTitle"></p>
-    <div id="input-container">
-      <input type="text" id="apiKey">
-      <button id="save-button" title="Save API key">
-        <i class="fa fa-save"></i>
-        <span id="save-button-text"></span>
-      </button>
-    </div>
-    <div id="delete-container">
-      <button id="delete-button" title="Delete API key">
-        <i class="fa fa-trash"></i>
-        <span id="delete-button-text"></span>
-      </button>
-      <p id="status-message"></p>
-    </div>
-    <p id="api-key-note" class="note"></p>
-  </div>
+  <main class="options-shell">
+    <header class="options-header">
+      <h1 id="optionsTitle"></h1>
+      <p id="status-message" aria-live="polite"></p>
+    </header>
+
+    <section class="settings-card">
+      <p id="apiTitle" class="section-intro"></p>
+      <div id="input-container" class="control-row">
+        <div class="api-key-field">
+          <input type="password" id="apiKey" autocomplete="off" spellcheck="false">
+          <button id="toggle-api-key-visibility" type="button" title="Show API key" aria-label="Show API key">
+            <i class="fa fa-eye"></i>
+          </button>
+        </div>
+        <button id="save-button" title="Save API key">
+          <i class="fa fa-save"></i>
+          <span id="save-button-text"></span>
+        </button>
+        <button id="delete-button" title="Delete API key">
+          <i class="fa fa-trash"></i>
+          <span id="delete-button-text"></span>
+        </button>
+      </div>
+      <p id="api-key-note" class="note"></p>
+    </section>
+
+    <section class="settings-grid">
+      <article class="settings-card">
+        <h2 id="system-message-title" class="section-title"></h2>
+        <textarea id="systemMessage" rows="7"></textarea>
+        <p id="system-message-note" class="note"></p>
+        <div id="system-message-buttons" class="button-row">
+          <button id="save-system-message-button" title="Save custom system message">
+            <i class="fa fa-save"></i>
+            <span id="save-system-message-button-text"></span>
+          </button>
+          <button id="reset-system-message-button" title="Reset custom system message">
+            <i class="fa fa-rotate-left"></i>
+            <span id="reset-system-message-button-text"></span>
+          </button>
+        </div>
+      </article>
+
+      <article class="settings-card accent-card">
+        <h2 id="accent-color-title" class="section-title"></h2>
+        <div id="accent-color-controls">
+          <input type="color" id="accentColor" value="#4f8cff" aria-label="Select accent color">
+          <input type="text" id="accent-color-hex" spellcheck="false" autocomplete="off" aria-label="Accent color hex value">
+        </div>
+        <p id="accent-color-note" class="note"></p>
+        <div id="accent-color-buttons" class="button-row">
+          <button id="save-accent-color-button" title="Save accent color">
+            <i class="fa fa-save"></i>
+            <span id="save-accent-color-button-text"></span>
+          </button>
+          <button id="reset-accent-color-button" title="Reset accent color">
+            <i class="fa fa-rotate-left"></i>
+            <span id="reset-accent-color-button-text"></span>
+          </button>
+        </div>
+      </article>
+
+      <article class="settings-card language-card">
+        <h2 id="language-title" class="section-title"></h2>
+        <select id="language-select" aria-label="Select language"></select>
+        <p id="language-note" class="note"></p>
+        <div id="language-buttons" class="button-row">
+          <button id="save-language-button" title="Save language">
+            <i class="fa fa-save"></i>
+            <span id="save-language-button-text"></span>
+          </button>
+          <button id="reset-language-button" title="Reset language">
+            <i class="fa fa-rotate-left"></i>
+            <span id="reset-language-button-text"></span>
+          </button>
+        </div>
+      </article>
+    </section>
+  </main>
+  <script src="../models.js"></script>
   <script src="options.js"></script>
 </body>
 

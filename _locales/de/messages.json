@@ -1,34 +1,534 @@
 {
   "optionsTitle": {
     "message": "Einstellungen",
-    "description": "Titel der Einstellungen-Seite"
+    "description": "Titel der Einstellungsseite"
   },
   "apiTitle": {
-    "message": "Gib deinen OpenAI API Schlüssel ein, um die Erweiterung zu nutzen:",
-    "description": "Titel der API-Schlüssel-Eingabe"
+    "message": "Gib deinen OpenAI-API-Schlüssel ein, um zu starten.",
+    "description": "Titel des API-Schlüssel-Bereichs"
   },
   "apiModelTitle": {
-    "message": "Wähle ein API Model aus:",
-    "description": "Titel der API-Model-Auswahl"
+    "message": "API-Modell auswählen:",
+    "description": "Veralteter Titel des API-Modell-Bereichs"
   },
   "lastMessagesTitle": {
-    "message": "Letzte Nachrichten",
-    "description": "Titel der letzten Nachrichten"
+    "message": "Letzte Nachrichten:",
+    "description": "Veralteter Titel des Bereichs für letzte Nachrichten"
   },
   "optionsInputPlaceholder": {
-    "message": "Hier API Schlüssel eingeben",
-    "description": "Platzhalter für API Schlüssel Eingabe"
+    "message": "API-Schlüssel hier eingeben",
+    "description": "Platzhalter des API-Schlüssel-Eingabefelds"
   },
   "optionsApiKeyNote": {
-    "message": "Dein API Schlüssel wird nur lokal gespeichert und nicht an Dritte weitergegeben.",
-    "description": "Hinweis zum API Schlüssel"
+    "message": "Hinweis: Dein API-Schlüssel wird nur lokal auf deinem Computer gespeichert.",
+    "description": "Hinweis zum API-Schlüssel"
   },
   "optionsSaveButtonText": {
     "message": "Speichern",
-    "description": "Text für den Button zum Speichern des API Schlüssels"
+    "description": "Text des Speichern-Buttons"
   },
   "optionsDeleteButtonText": {
-    "message": "API Schlüssel löschen",
-    "description": "Text für den Button zum Löschen des API Schlüssels"
+    "message": "API-Schlüssel löschen",
+    "description": "Text des Lösch-Buttons"
+  },
+  "optionsResetButtonText": {
+    "message": "Zurücksetzen",
+    "description": "Allgemeiner Text für Zurücksetzen-Buttons in den Einstellungen"
+  },
+  "optionsSystemMessageTitle": {
+    "message": "Benutzerdefinierte Systemnachricht",
+    "description": "Titel des Bereichs für die benutzerdefinierte Systemnachricht"
+  },
+  "optionsSystemMessagePlaceholder": {
+    "message": "Optional: Füge eine Systemnachricht hinzu, um das Verhalten des Assistenten zu steuern.",
+    "description": "Platzhalter des Systemnachricht-Felds"
+  },
+  "optionsSystemMessageNote": {
+    "message": "Diese Nachricht wird bei jeder neuen Anfrage als Systemanweisung vorangestellt. Leer lassen, um das Standardverhalten zu verwenden.",
+    "description": "Hinweis unter dem Systemnachricht-Feld"
+  },
+  "optionsSystemMessageSaveButtonText": {
+    "message": "Systemnachricht speichern",
+    "description": "Text des Buttons zum Speichern der Systemnachricht"
+  },
+  "optionsSystemMessageResetButtonText": {
+    "message": "Auf Standard zurücksetzen",
+    "description": "Text des Buttons zum Zurücksetzen der Systemnachricht"
+  },
+  "optionsAccentColorTitle": {
+    "message": "Akzentfarbe",
+    "description": "Titel des Akzentfarben-Bereichs"
+  },
+  "optionsAccentColorNote": {
+    "message": "Wird für die Nachrichtenblase des Nutzers im Popup verwendet.",
+    "description": "Hinweis unter dem Akzentfarben-Picker"
+  },
+  "optionsAccentColorHexPlaceholder": {
+    "message": "Hex einfügen (z. B. #4f8cff)",
+    "description": "Platzhalter des Hex-Eingabefelds für Akzentfarbe"
+  },
+  "optionsAccentColorSaveButtonText": {
+    "message": "Akzentfarbe speichern",
+    "description": "Text des Buttons zum Speichern der Akzentfarbe"
+  },
+  "optionsAccentColorResetButtonText": {
+    "message": "Farbe zurücksetzen",
+    "description": "Text des Buttons zum Zurücksetzen der Akzentfarbe"
+  },
+  "optionsSaveApiKeyTitle": {
+    "message": "API-Schlüssel speichern",
+    "description": "Titel des Buttons zum Speichern des API-Schlüssels"
+  },
+  "optionsDeleteApiKeyTitle": {
+    "message": "API-Schlüssel löschen",
+    "description": "Titel des Buttons zum Löschen des API-Schlüssels"
+  },
+  "optionsApiKeyShowTitle": {
+    "message": "API-Schlüssel anzeigen",
+    "description": "Titel/ARIA-Label zum Anzeigen des API-Schlüssels"
+  },
+  "optionsApiKeyHideTitle": {
+    "message": "API-Schlüssel ausblenden",
+    "description": "Titel/ARIA-Label zum Ausblenden des API-Schlüssels"
+  },
+  "optionsSaveSystemMessageTitle": {
+    "message": "Benutzerdefinierte Systemnachricht speichern",
+    "description": "Titel des Buttons zum Speichern der Systemnachricht"
+  },
+  "optionsResetSystemMessageTitle": {
+    "message": "Benutzerdefinierte Systemnachricht zurücksetzen",
+    "description": "Titel des Buttons zum Zurücksetzen der Systemnachricht"
+  },
+  "optionsAccentColorPickerLabel": {
+    "message": "Akzentfarbe auswählen",
+    "description": "ARIA-Label für den Akzentfarben-Picker"
+  },
+  "optionsAccentColorHexLabel": {
+    "message": "Hex-Wert der Akzentfarbe",
+    "description": "ARIA-Label für das Hex-Eingabefeld der Akzentfarbe"
+  },
+  "optionsSaveAccentColorTitle": {
+    "message": "Akzentfarbe speichern",
+    "description": "Titel des Buttons zum Speichern der Akzentfarbe"
+  },
+  "optionsResetAccentColorTitle": {
+    "message": "Akzentfarbe zurücksetzen",
+    "description": "Titel des Buttons zum Zurücksetzen der Akzentfarbe"
+  },
+  "optionsStatusInvalidApiKey": {
+    "message": "Bitte gib einen gültigen API-Schlüssel ein.",
+    "description": "Statusmeldung bei ungültigem API-Schlüssel"
+  },
+  "optionsStatusApiKeySaved": {
+    "message": "API-Schlüssel erfolgreich gespeichert.",
+    "description": "Statusmeldung nach dem Speichern des API-Schlüssels"
+  },
+  "optionsStatusApiKeyDeleted": {
+    "message": "API-Schlüssel erfolgreich gelöscht.",
+    "description": "Statusmeldung nach dem Löschen des API-Schlüssels"
+  },
+  "optionsStatusSystemMessageSaved": {
+    "message": "Benutzerdefinierte Systemnachricht gespeichert.",
+    "description": "Statusmeldung nach dem Speichern der Systemnachricht"
+  },
+  "optionsStatusSystemMessageReset": {
+    "message": "Benutzerdefinierte Systemnachricht auf Standard zurückgesetzt.",
+    "description": "Statusmeldung nach dem Zurücksetzen der Systemnachricht"
+  },
+  "optionsStatusAccentSaved": {
+    "message": "Akzentfarbe gespeichert.",
+    "description": "Statusmeldung nach dem Speichern der Akzentfarbe"
+  },
+  "optionsStatusAccentReset": {
+    "message": "Akzentfarbe auf Standard zurückgesetzt.",
+    "description": "Statusmeldung nach dem Zurücksetzen der Akzentfarbe"
+  },
+  "optionsLanguageTitle": {
+    "message": "Sprache",
+    "description": "Titel des Sprachbereichs in den Einstellungen"
+  },
+  "optionsLanguageNote": {
+    "message": "Wähle, welche Sprache die Erweiterung verwenden soll.",
+    "description": "Hinweis unter der Sprachauswahl"
+  },
+  "optionsLanguageSaveButtonText": {
+    "message": "Sprache speichern",
+    "description": "Text des Buttons zum Speichern der Sprache"
+  },
+  "optionsLanguageResetButtonText": {
+    "message": "Auf automatisch zurücksetzen",
+    "description": "Text des Buttons zum Zurücksetzen der Sprache"
+  },
+  "optionsLanguageSelectLabel": {
+    "message": "Sprache auswählen",
+    "description": "ARIA-Label für die Sprachauswahl"
+  },
+  "optionsLanguageAutoOption": {
+    "message": "Automatisch (Browsersprache)",
+    "description": "Sprachoption für automatische Browsersprache"
+  },
+  "optionsLanguageEnglishOption": {
+    "message": "English",
+    "description": "Sprachoption für Englisch"
+  },
+  "optionsLanguageGermanOption": {
+    "message": "Deutsch",
+    "description": "Sprachoption für Deutsch"
+  },
+  "optionsSaveLanguageTitle": {
+    "message": "Sprache speichern",
+    "description": "Titel des Buttons zum Speichern der Sprache"
+  },
+  "optionsResetLanguageTitle": {
+    "message": "Sprache auf automatisch zurücksetzen",
+    "description": "Titel des Buttons zum Zurücksetzen der Sprache"
+  },
+  "optionsStatusLanguageSaved": {
+    "message": "Sprache gespeichert.",
+    "description": "Statusmeldung nach dem Speichern der Sprache"
+  },
+  "optionsStatusLanguageReset": {
+    "message": "Sprache auf automatisch zurückgesetzt.",
+    "description": "Statusmeldung nach dem Zurücksetzen der Sprache"
+  },
+  "popupModelChangeTitle": {
+    "message": "Modell ändern",
+    "description": "Titel des Modell-Dropdowns im Popup"
+  },
+  "popupModelGroupChat": {
+    "message": "Chat-Modelle",
+    "description": "Gruppenlabel für Chat-Modelle im Modell-Dropdown"
+  },
+  "popupModelGroupImage": {
+    "message": "Bild-Modelle",
+    "description": "Gruppenlabel für Bild-Modelle im Modell-Dropdown"
+  },
+  "popupModelGroupOther": {
+    "message": "Andere Modelle",
+    "description": "Gruppenlabel für nicht kategorisierte Modelle im Modell-Dropdown"
+  },
+  "popupModelTypeChat": {
+    "message": "Chat",
+    "description": "Badge-Label für Chat-Modelle"
+  },
+  "popupModelTypeImage": {
+    "message": "Bild",
+    "description": "Badge-Label für Bild-Modelle"
+  },
+  "popupModelTypeOther": {
+    "message": "Andere",
+    "description": "Badge-Label für nicht kategorisierte Modelle"
+  },
+  "popupThinkingChangeTitle": {
+    "message": "Denkstufe ändern",
+    "description": "Titel des Denkstufen-Dropdowns im Popup"
+  },
+  "popupWebToggleTitle": {
+    "message": "Websuche umschalten",
+    "description": "Titel des Websuche-Toggles im Popup"
+  },
+  "popupWebToggleLabel": {
+    "message": "Web",
+    "description": "Beschriftung des Websuche-Toggles"
+  },
+  "popupClearChatTitle": {
+    "message": "Chat löschen",
+    "description": "Titel des Chat-Löschen-Buttons"
+  },
+  "popupSettingsTitle": {
+    "message": "Einstellungen",
+    "description": "Titel des Einstellungen-Buttons"
+  },
+  "popupAttachTitle": {
+    "message": "Dateien oder Bilder hinzufügen",
+    "description": "Titel des Anhang-Buttons"
+  },
+  "popupInputPlaceholder": {
+    "message": "Frag mich alles...",
+    "description": "Platzhalter des Eingabefelds im Popup"
+  },
+  "popupSendTitle": {
+    "message": "Nachricht senden",
+    "description": "Titel des Senden-Buttons"
+  },
+  "popupStopTitle": {
+    "message": "Antwort stoppen",
+    "description": "Titel des Stop-Buttons während einer Anfrage"
+  },
+  "popupErrorSendFailed": {
+    "message": "Nachricht konnte nicht gesendet werden. Bitte versuche es erneut.",
+    "description": "Fehlermeldung, wenn das Senden an den Background-Worker fehlschlägt"
+  },
+  "popupAttachmentLimitMessage": {
+    "message": "Du kannst pro Nachricht höchstens $1 Dateien anhängen.",
+    "description": "Meldung beim Erreichen des Anhang-Limits"
+  },
+  "popupAttachmentLimitRemoveMessage": {
+    "message": "Du kannst pro Nachricht höchstens $1 Dateien anhängen. Entferne einige und versuche es erneut.",
+    "description": "Meldung bei zu vielen ausgewählten Anhängen"
+  },
+  "popupAttachmentSkippedFilesMessage": {
+    "message": "Einige Dateien wurden übersprungen (max. $1MB pro Datei): $2",
+    "description": "Meldung, wenn ausgewählte Anhänge übersprungen werden"
+  },
+  "popupWaitingForResponse": {
+    "message": "Warte auf Antwort...",
+    "description": "Ladeanzeige während auf die Modellantwort gewartet wird"
+  },
+  "popupLoadingLabel": {
+    "message": "Laden...",
+    "description": "Allgemeine Fallback-Ladeanzeige"
+  },
+  "popupDownloadLabel": {
+    "message": "Herunterladen",
+    "description": "Beschriftung des Download-Buttons für Bilder"
+  },
+  "popupDownloadTitle": {
+    "message": "Bild herunterladen",
+    "description": "Titel des Download-Buttons für Bilder"
+  },
+  "popupActionSavedLabel": {
+    "message": "Gespeichert",
+    "description": "Allgemeine Erfolgsbeschriftung für Aktions-Buttons"
+  },
+  "popupActionFailedLabel": {
+    "message": "Fehlgeschlagen",
+    "description": "Allgemeine Fehlerbeschriftung für Aktions-Buttons"
+  },
+  "popupRegenerateLabel": {
+    "message": "Neu generieren",
+    "description": "Beschriftung der Neu-generieren-Aktion"
+  },
+  "popupRegenerateTitle": {
+    "message": "Antwort neu generieren",
+    "description": "Titel der Neu-generieren-Aktion"
+  },
+  "popupCopyLabel": {
+    "message": "Kopieren",
+    "description": "Beschriftung der Kopier-Aktion"
+  },
+  "popupCopyTitle": {
+    "message": "Antwort kopieren",
+    "description": "Titel der Kopier-Aktion"
+  },
+  "popupCopiedLabel": {
+    "message": "Kopiert",
+    "description": "Erfolgsbeschriftung für Kopieren"
+  },
+  "popupErrorRegenerateFailed": {
+    "message": "Antwort konnte nicht neu generiert werden. Bitte versuche es erneut.",
+    "description": "Fehlermeldung, wenn Neu-generieren fehlschlägt"
+  },
+  "popupClearConfirm": {
+    "message": "Möchtest du den Chatverlauf wirklich löschen?",
+    "description": "Bestätigungstext vor dem Löschen des Chats"
+  },
+  "popupThinkLabelTemplate": {
+    "message": "$1",
+    "description": "Vorlage für die Beschriftung des Denkstufen-Buttons"
+  },
+  "popupWebDisableTitle": {
+    "message": "Websuche deaktivieren",
+    "description": "Titel des Websuche-Toggles, wenn Websuche aktiv ist"
+  },
+  "popupWebEnableTitle": {
+    "message": "Websuche aktivieren",
+    "description": "Titel des Websuche-Toggles, wenn Websuche inaktiv ist"
+  },
+  "popupEmptyStateTitle": {
+    "message": "Wie kann ich helfen?",
+    "description": "Leerer Zustand im Popup"
+  },
+  "popupEmptyStateExamplesLabel": {
+    "message": "Versuche zum Beispiel",
+    "description": "Beschriftung über den Beispiel-Prompts im leeren Zustand"
+  },
+  "popupEmptyStateExampleSummarize": {
+    "message": "Fasse diese Seite in 5 Stichpunkten zusammen.",
+    "description": "Beispiel-Prompt im leeren Zustand für Zusammenfassungen"
+  },
+  "popupEmptyStateExampleDraftEmail": {
+    "message": "Schreibe eine kurze Follow-up-E-Mail für einen Kunden.",
+    "description": "Beispiel-Prompt im leeren Zustand für Schreibaufgaben"
+  },
+  "popupEmptyStateExampleTranslate": {
+    "message": "Übersetze diesen Text ins Deutsche und behalte den Ton bei.",
+    "description": "Beispiel-Prompt im leeren Zustand für Übersetzungen"
+  },
+  "popupEmptyStateExampleCodeReview": {
+    "message": "Prüfe diesen Code und nenne Bugs sowie Risiken.",
+    "description": "Beispiel-Prompt im leeren Zustand für Coding-Aufgaben"
+  },
+  "popupEmptyStateExampleImagePrompt": {
+    "message": "Erstelle einen Bild-Prompt für eine moderne App-Landingpage.",
+    "description": "Beispiel-Prompt im leeren Zustand für Bildgenerierung"
+  },
+  "popupEmptyStateExampleMeetingNotes": {
+    "message": "Formatiere diese Stichpunkte als klare Meeting-Notizen.",
+    "description": "Beispiel-Prompt im leeren Zustand für Meeting-Notizen"
+  },
+  "popupEmptyStateExampleWeeklyPlan": {
+    "message": "Plane meine Woche mit Prioritäten und Zeitblöcken.",
+    "description": "Beispiel-Prompt im leeren Zustand für Planung"
+  },
+  "popupEmptyStateExampleExplainConcept": {
+    "message": "Erkläre dieses Konzept so, als wäre ich neu im Thema.",
+    "description": "Beispiel-Prompt im leeren Zustand für Erklärungen"
+  },
+  "popupEmptyStateExampleRewriteTone": {
+    "message": "Formuliere diese Nachricht professionell, aber freundlich um.",
+    "description": "Beispiel-Prompt im leeren Zustand für Ton-Umschreiben"
+  },
+  "popupAssistantIconAlt": {
+    "message": "Assistenten-Symbol",
+    "description": "Alt-Text für das Icon im leeren Zustand"
+  },
+  "popupAttachLimitTitle": {
+    "message": "Anhang-Limit erreicht ($1/$2)",
+    "description": "Titel des Anhang-Buttons, wenn das Limit erreicht ist"
+  },
+  "popupAttachSelectedTitle": {
+    "message": "Dateien oder Bilder hinzufügen ($1 ausgewählt)",
+    "description": "Titel des Anhang-Buttons mit ausgewählter Anzahl"
+  },
+  "popupErrorGeneric": {
+    "message": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "description": "Allgemeine Fehler-Fallback-Meldung im Popup"
+  },
+  "popupErrorReadFileFailed": {
+    "message": "Datei konnte nicht gelesen werden.",
+    "description": "Fehlermeldung beim Lesen einer ausgewählten Datei"
+  },
+  "popupAttachmentImageToken": {
+    "message": "bild",
+    "description": "Token in serialisierten Anhang-Zusammenfassungen für Bilder"
+  },
+  "popupAttachmentImageLabel": {
+    "message": "Bild",
+    "description": "Beschriftung der Anhang-Pille für Bilder"
+  },
+  "popupAttachmentFileLabel": {
+    "message": "DATEI",
+    "description": "Fallback-Beschriftung der Anhang-Pille für unbekannte Dateitypen"
+  },
+  "popupAttachmentSummaryPrefix": {
+    "message": "Anhänge",
+    "description": "Präfix in serialisierten Anhang-Zusammenfassungen"
+  },
+  "bgDefaultSystemMessage": {
+    "message": "Du bist ein KI-Assistent. Gib immer klare, korrekte und prägnante Antworten auf Nutzeranfragen. Wenn du unsicher bist, sag das ehrlich. Sei hilfreich und höflich.",
+    "description": "Standard-Systemnachricht des Background-Service-Workers"
+  },
+  "bgImageContextPlaceholder": {
+    "message": "[Der Assistent hat in einer vorherigen Runde ein Bild erzeugt. Die Rohbilddaten werden aus dem Kontext ausgelassen.]",
+    "description": "Platzhalter anstelle von Rohbilddaten im Chatverlauf"
+  },
+  "bgErrorApiKeyMissing": {
+    "message": "Bitte hinterlege einen gültigen OpenAI-API-Schlüssel in den Einstellungen.",
+    "description": "Fehler, wenn kein API-Schlüssel vorhanden ist"
+  },
+  "bgErrorAttachmentsUnsupported": {
+    "message": "Anhänge werden nur bei Chat-Modellen unterstützt. Bitte wechsle zu einem Chat-Modell und versuche es erneut.",
+    "description": "Fehler bei Anhängen mit Bild-Modellen"
+  },
+  "bgErrorNoContent": {
+    "message": "Das Modell hat keinen Inhalt zurückgegeben.",
+    "description": "Fehler, wenn die Antwort keinen Inhalt enthält"
+  },
+  "bgErrorNoUserMessage": {
+    "message": "Es wurde keine vorherige Nutzernachricht zum Neu-Generieren gefunden.",
+    "description": "Fehler beim Neu-Generieren ohne Nutzernachricht"
+  },
+  "bgErrorNoTextResponse": {
+    "message": "Das Modell hat keine Textantwort zurückgegeben.",
+    "description": "Fehler bei leerer Textantwort"
+  },
+  "bgErrorNoImageResponse": {
+    "message": "Das Modell hat kein Bild zurückgegeben.",
+    "description": "Fehler bei leerer Bildantwort"
+  },
+  "bgErrorStreamingUnsupported": {
+    "message": "Streaming wird in dieser Umgebung nicht unterstützt.",
+    "description": "Fehler, wenn die Umgebung kein Streaming unterstützt"
+  },
+  "bgErrorTimeout": {
+    "message": "Die Anfrage hat zu lange gedauert. Bitte versuche es erneut.",
+    "description": "Fehler bei Zeitüberschreitung"
+  },
+  "bgErrorApiKeyInvalid": {
+    "message": "Dein API-Schlüssel scheint ungültig zu sein. Bitte prüfe ihn und versuche es erneut.",
+    "description": "Fehler bei 401 von OpenAI"
+  },
+  "bgErrorFetchStatus": {
+    "message": "Abruf fehlgeschlagen. Statuscode: $1",
+    "description": "Fallback-API-Fehler mit HTTP-Statuscode"
+  },
+  "bgErrorGeneric": {
+    "message": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "description": "Allgemeine Fehler-Fallback-Meldung im Background"
+  },
+  "bgAttachmentImageToken": {
+    "message": "bild",
+    "description": "Token in serialisierten Anhang-Zusammenfassungen für Bilder"
+  },
+  "bgAttachmentsPrefix": {
+    "message": "Anhänge",
+    "description": "Präfix in serialisierten Anhang-Zusammenfassungen"
+  },
+  "thinkingLevelDefault": {
+    "message": "Standard",
+    "description": "Beschriftung für Standard-Denkstufe"
+  },
+  "thinkingLevelNone": {
+    "message": "Keine",
+    "description": "Beschriftung für keine Denkstufe"
+  },
+  "thinkingLevelMinimal": {
+    "message": "Minimal",
+    "description": "Beschriftung für minimale Denkstufe"
+  },
+  "thinkingLevelLow": {
+    "message": "Niedrig",
+    "description": "Beschriftung für niedrige Denkstufe"
+  },
+  "thinkingLevelMedium": {
+    "message": "Mittel",
+    "description": "Beschriftung für mittlere Denkstufe"
+  },
+  "thinkingLevelHigh": {
+    "message": "Hoch",
+    "description": "Beschriftung für hohe Denkstufe"
+  },
+  "thinkingLevelXHigh": {
+    "message": "Sehr hoch",
+    "description": "Beschriftung für sehr hohe Denkstufe"
+  },
+  "thinkingLevelDefaultWithValue": {
+    "message": "Standard ($1)",
+    "description": "Vorlage für Standard-Denkstufe mit aufgelöstem Wert"
+  },
+  "popupUnnamedFileLabel": {
+    "message": "unbenannte Datei",
+    "description": "Fallback-Name für abgelehnte Dateien ohne Dateinamen"
+  },
+  "popupAttachmentFallbackName": {
+    "message": "anhang",
+    "description": "Fallback-Dateiname für Anhänge"
+  },
+  "bgAttachmentFallbackName": {
+    "message": "anhang",
+    "description": "Fallback-Dateiname für serialisierte Anhang-Metadaten"
+  },
+  "bgErrorStreamingFailed": {
+    "message": "Die Streaming-Anfrage ist fehlgeschlagen.",
+    "description": "Fallback-Fehler, wenn Streaming fehlschlägt"
+  },
+  "extName": {
+    "message": "OpenAI ChatGPT Chrome-Erweiterung",
+    "description": "Name der Erweiterung in Chrome"
+  },
+  "extDescription": {
+    "message": "Chatte mit OpenAI-Modellen oder generiere Bilder, ohne deine aktuelle Seite zu verlassen.",
+    "description": "Beschreibung der Erweiterung in Chrome"
   }
 }

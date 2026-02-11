@@ -1,33 +1,95 @@
 # OpenAI ChatGPT Chrome Extension
 
-This extension uses the magic of OpenAI's chat and image models to ensure a seamless ChatGPT-Like experience - all without ever having to leave your favorite website. Start a A.I. powered conversation or generate stunning images with just a few clicks.
+A Chrome extension that brings OpenAI chat and image generation into a compact popup.
 
+The project is built on top of the OpenAI Responses API for chat and the Images API for image generation, with streaming output, model switching, and and web search.
 
-## 📸 Screenshots
-<div style="display: flex; gap: 20px; justify-content: start; align-items: start;">
-    <img src='assets/preview-1.png' width='400' alt='Chat Completion Preview' />
-    <img src='assets/preview-2.png' width='400' alt='Image Generation Preview' />
-</div>
+## Screenshots
 
-## ✨ Features
+![Chat Preview](assets/preview-1.png)
+![Image Preview](assets/preview-2.png)
 
- - 💨 Easy access to OpenAI's chat and images models without leaving your favorite website.
- - 💬 Chat with the latest GPT models.
- - 🌄 Generate stunning images with DALL-E 3.
- - 🎛️ Seamlessly switch between different models.
- - 💾 Copy or download the generated content with just a click.
- - 🛟 API-Key is safely stored in the browser's local storage and never leaves your device.
+## What It Does
 
-## 🚀 Getting started
-    
-1. Clone the extension or download the latest release.
-2. Open the Chrome browser and navigate to [chrome://extensions](chrome://extensions).
-3. Enable the developer mode by clicking the toggle switch in the top right corner of the page.
-4. Click on the "Load unpacked" button and select the cloned extension folder.
-5. The options page automatically opens where you need to enter your OpenAI API-Key.
-    
-The extension should now be installed and ready to use. Open the extension by clicking on the chrome-themed OpenAI icon in the top right corner of your browser.
+- Chat with OpenAI GPT models from the browser toolbar popup
+- Generate images with OpenAI image models
+- Stream assistant responses token-by-token
+- Stop in-progress responses
+- Regenerate the last assistant response
+- Copy assistant text responses
+- Download generated images
+- Attach files/images to chat prompts (up to 6 files, 10 MB per file in the UI)
+- Use a custom system message
+- Toggle web search for supported chat models
+- Select model-specific reasoning effort where supported
+- Persist chat history and settings in local browser storage
 
-## 🚨 Note
+## Supported Models (Current Config)
 
-For the extension to work, you need to have an OpenAI API-Key. You can get one by signing up on the [OpenAI website](https://openai.com/). Once you have an API-Key, you will need to enter it in the options page of the extension.
+### Chat models
+
+- `gpt-5.2` (thinking + web search)
+- `gpt-5.1` (thinking + web search)
+- `gpt-5-pro` (thinking + web search)
+- `gpt-5-mini` (thinking + web search)
+- `gpt-5-nano` (thinking + web search)
+
+### Image models
+
+- `gpt-image-1.5`
+- `gpt-image-1-mini`
+
+## Reasoning Effort
+
+The thinking dropdown is model-aware.
+
+- Values include: `default`, `none`, `minimal`, `low`, `medium`, `high`, `xhigh`
+- The extension only shows values supported by the selected model
+- `default` maps to the model's default reasoning effort
+
+## Web Search
+
+- A web search toggle is available in the popup header
+- It is only shown for models that support web search
+- When enabled, chat requests include the `web_search` tool
+
+## Installation
+
+1. Clone this repository.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode**.
+4. Click **Load unpacked** and select this repository folder.
+5. Open extension **Options** and save your OpenAI API key.
+
+## Configuration
+
+Open the options page to configure:
+
+- OpenAI API key
+- Custom system message
+- Accent color (picker + hex input)
+
+## Usage
+
+1. Open the extension popup.
+2. Choose a model.
+3. For chat models, optionally choose thinking level and web search.
+4. Type a prompt (and optionally attach files/images for chat models).
+5. Send.
+
+## Data and Privacy
+
+- API key is stored in `chrome.storage.local`
+- Chat history is stored in `chrome.storage.local`
+- Extension requests are sent directly to `https://api.openai.com/v1`
+- No separate backend service is used by this project
+
+## Development Notes
+
+- No build step required
+- Plain JavaScript + CSS + HTML (Manifest V3)
+- Reload the extension in `chrome://extensions` after code changes
+
+## License
+
+See [`LICENSE`](LICENSE).

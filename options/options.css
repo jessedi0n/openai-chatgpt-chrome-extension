@@ -1,84 +1,308 @@
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #343541;
     margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    padding: 24px;
+    min-height: 100vh;
+    background-color: #212121;
+    color: #f4f5f7;
+    font-family: "Inter", sans-serif;
 }
 
 * {
     box-sizing: border-box;
 }
 
-.container {
+.options-shell {
+    width: min(980px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+}
+
+.options-header {
     display: flex;
-    flex-direction: column;
-    text-align: center;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-label {
-    display: block;
-    margin-bottom: 10px;
-}
-
-#input-container {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-}
-
-input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-button {
-    background-color: #4caf50;
-    color: #fff;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
-button i {
-    margin-right: 5px;
-}
-
-#save-button {
-    display: flex;
-    align-items: center;
-}
-
-#delete-container {
-    display: flex;
-    flex-direction: row;
     justify-content: space-between;
-    gap: 10px;
-    margin-top: 10px;
+    align-items: flex-end;
+    gap: 16px;
 }
 
-#delete-button {
-    background-color: #f44336;
-    padding: 10px 15px;
-}
-
-#delete-button:hover {
-    background-color: #d32f2f;
+#optionsTitle {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
 }
 
 #status-message {
-    margin-top: 10px;
-    color: #333;
+    margin: 0;
+    min-height: 34px;
+    padding: 7px 12px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: #d5d8e2;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    transition: opacity 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+
+#status-message:empty {
+    opacity: 0;
+}
+
+#status-message:not(:empty) {
+    opacity: 1;
+    background-color: #1a1a1a;
+    border-color: #323232;
+}
+
+.settings-card {
+    background-color: #181818;
+    border: 1px solid #2f2f2f;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.section-intro {
+    margin: 0 0 12px;
+    color: #e6e6e6;
+    line-height: 1.4;
+}
+
+.section-title {
+    margin: 0 0 12px;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.control-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.api-key-field {
+    position: relative;
+    width: 100%;
+}
+
+#apiKey {
+    padding-right: 44px;
+}
+
+#toggle-api-key-visibility {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 9999px;
+    border: 1px solid #3a3a3a;
+    background-color: #2a2a2a;
+    color: #d6d9e2;
+}
+
+#toggle-api-key-visibility:hover {
+    transform: translateY(-50%);
+    background-color: #333333;
+    border-color: #505050;
+}
+
+#toggle-api-key-visibility:active {
+    transform: translateY(-50%);
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    background-color: #232323;
+    color: #f4f5f7;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+input,
+select {
+    height: 42px;
+    padding: 0 12px;
+}
+
+textarea {
+    min-height: 168px;
+    resize: vertical;
+    padding: 12px;
+    line-height: 1.42;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #a0a0a0;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #575757;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.09);
+}
+
+button {
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 9999px;
+    border: 1px solid #3a3a3a;
+    background-color: #242424;
+    color: #f4f5f7;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+button:hover {
+    background-color: #2d2d2d;
+    border-color: #4e4e4e;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: none;
+}
+
+#delete-button {
+    background-color: #2a1f1f;
+    border-color: #5d3737;
+}
+
+#delete-button:hover {
+    background-color: #382727;
+    border-color: #7f4a4a;
+}
+
+.note {
+    margin: 10px 0 0;
+    color: #b8b8b8;
+    line-height: 1.4;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+}
+
+.button-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#system-message-buttons button,
+#accent-color-buttons button {
+    min-width: 160px;
+}
+
+.accent-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.language-card {
+    display: flex;
+    flex-direction: column;
+}
+
+#accent-color-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#accentColor {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #3b3b3b;
+    background-color: transparent;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+#accentColor::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+#accentColor::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#accentColor::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#accent-color-hex {
+    width: 138px;
+    min-width: 138px;
+    height: 40px;
+    border-radius: 10px;
+    font-family: "Inter", monospace;
+    text-transform: lowercase;
+}
+
+#language-select {
+    max-width: 220px;
+    cursor: pointer;
+}
+
+#language-buttons button {
+    min-width: 160px;
+}
+
+@media (max-width: 900px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 16px;
+    }
+
+    .options-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #status-message {
+        text-align: left;
+    }
+
+    .control-row {
+        grid-template-columns: 1fr;
+    }
+
+    .control-row > button {
+        width: 100%;
+    }
+
+    .button-row button {
+        width: 100%;
+    }
 }

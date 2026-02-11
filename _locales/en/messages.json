@@ -5,23 +5,23 @@
   },
   "apiTitle": {
     "message": "Enter your OpenAI API key below to get started.",
-    "description": "Title of the API-Key section"
+    "description": "Title of the API key section"
   },
   "apiModelTitle": {
-    "message": "Choose API-Model:",
-    "description": "Title of the API-Model section"
+    "message": "Choose API model:",
+    "description": "Legacy title of the API model section"
   },
   "lastMessagesTitle": {
-    "message": "Last Messages:",
-    "description": "Title of the last messages section"
+    "message": "Last messages:",
+    "description": "Legacy title of the last messages section"
   },
   "optionsInputPlaceholder": {
     "message": "Enter your API key here",
-    "description": "Placeholder of the API-Key input"
+    "description": "Placeholder of the API key input"
   },
   "optionsApiKeyNote": {
-    "message": "Note: Your API key will only be stored locally on your computer and nowhere else.",
-    "description": "Note about the API-Key"
+    "message": "Note: Your API key is only stored locally on your computer.",
+    "description": "Note about the API key"
   },
   "optionsSaveButtonText": {
     "message": "Save",
@@ -30,5 +30,505 @@
   "optionsDeleteButtonText": {
     "message": "Delete API key",
     "description": "Text of the delete button"
+  },
+  "optionsResetButtonText": {
+    "message": "Reset",
+    "description": "Generic text for reset buttons in options"
+  },
+  "optionsSystemMessageTitle": {
+    "message": "Custom system message",
+    "description": "Title for the custom system message section"
+  },
+  "optionsSystemMessagePlaceholder": {
+    "message": "Optional: Add a system message to control assistant behavior.",
+    "description": "Placeholder for the custom system message textarea"
+  },
+  "optionsSystemMessageNote": {
+    "message": "This message is prepended as the system instruction for every new request. Leave empty to use the default behavior.",
+    "description": "Note below the custom system message textarea"
+  },
+  "optionsSystemMessageSaveButtonText": {
+    "message": "Save system message",
+    "description": "Text of the save system message button"
+  },
+  "optionsSystemMessageResetButtonText": {
+    "message": "Reset to default",
+    "description": "Text of the reset system message button"
+  },
+  "optionsAccentColorTitle": {
+    "message": "Accent color",
+    "description": "Title for accent color section"
+  },
+  "optionsAccentColorNote": {
+    "message": "Used for the user message bubble in the popup.",
+    "description": "Note below the accent color picker"
+  },
+  "optionsAccentColorHexPlaceholder": {
+    "message": "Paste hex (e.g. #4f8cff)",
+    "description": "Placeholder for accent color hex input"
+  },
+  "optionsAccentColorSaveButtonText": {
+    "message": "Save accent color",
+    "description": "Text of the save accent color button"
+  },
+  "optionsAccentColorResetButtonText": {
+    "message": "Reset color",
+    "description": "Text of the reset accent color button"
+  },
+  "optionsSaveApiKeyTitle": {
+    "message": "Save API key",
+    "description": "Title for save API key button"
+  },
+  "optionsDeleteApiKeyTitle": {
+    "message": "Delete API key",
+    "description": "Title for delete API key button"
+  },
+  "optionsApiKeyShowTitle": {
+    "message": "Show API key",
+    "description": "Title/aria label for showing the API key value"
+  },
+  "optionsApiKeyHideTitle": {
+    "message": "Hide API key",
+    "description": "Title/aria label for hiding the API key value"
+  },
+  "optionsSaveSystemMessageTitle": {
+    "message": "Save custom system message",
+    "description": "Title for save system message button"
+  },
+  "optionsResetSystemMessageTitle": {
+    "message": "Reset custom system message",
+    "description": "Title for reset system message button"
+  },
+  "optionsAccentColorPickerLabel": {
+    "message": "Select accent color",
+    "description": "Aria label for accent color picker"
+  },
+  "optionsAccentColorHexLabel": {
+    "message": "Accent color hex value",
+    "description": "Aria label for accent color hex input"
+  },
+  "optionsSaveAccentColorTitle": {
+    "message": "Save accent color",
+    "description": "Title for save accent color button"
+  },
+  "optionsResetAccentColorTitle": {
+    "message": "Reset accent color",
+    "description": "Title for reset accent color button"
+  },
+  "optionsStatusInvalidApiKey": {
+    "message": "Please enter a valid API key.",
+    "description": "Status message for invalid API key"
+  },
+  "optionsStatusApiKeySaved": {
+    "message": "API key saved successfully!",
+    "description": "Status message after saving API key"
+  },
+  "optionsStatusApiKeyDeleted": {
+    "message": "API key deleted successfully!",
+    "description": "Status message after deleting API key"
+  },
+  "optionsStatusSystemMessageSaved": {
+    "message": "Custom system message saved.",
+    "description": "Status message after saving system message"
+  },
+  "optionsStatusSystemMessageReset": {
+    "message": "Custom system message reset to default.",
+    "description": "Status message after resetting system message"
+  },
+  "optionsStatusAccentSaved": {
+    "message": "Accent color saved.",
+    "description": "Status message after saving accent color"
+  },
+  "optionsStatusAccentReset": {
+    "message": "Accent color reset to default.",
+    "description": "Status message after resetting accent color"
+  },
+  "optionsLanguageTitle": {
+    "message": "Language",
+    "description": "Title for language section in options"
+  },
+  "optionsLanguageNote": {
+    "message": "Choose which language the extension should use.",
+    "description": "Note below the language selector"
+  },
+  "optionsLanguageSaveButtonText": {
+    "message": "Save language",
+    "description": "Text of the save language button"
+  },
+  "optionsLanguageResetButtonText": {
+    "message": "Reset to automatic",
+    "description": "Text of the reset language button"
+  },
+  "optionsLanguageSelectLabel": {
+    "message": "Select language",
+    "description": "Aria label for the language select"
+  },
+  "optionsLanguageAutoOption": {
+    "message": "Automatic (browser language)",
+    "description": "Language option for automatic browser language"
+  },
+  "optionsLanguageEnglishOption": {
+    "message": "English",
+    "description": "Language option for English"
+  },
+  "optionsLanguageGermanOption": {
+    "message": "Deutsch",
+    "description": "Language option for German"
+  },
+  "optionsSaveLanguageTitle": {
+    "message": "Save language",
+    "description": "Title for save language button"
+  },
+  "optionsResetLanguageTitle": {
+    "message": "Reset language to automatic",
+    "description": "Title for reset language button"
+  },
+  "optionsStatusLanguageSaved": {
+    "message": "Language saved.",
+    "description": "Status message after saving language"
+  },
+  "optionsStatusLanguageReset": {
+    "message": "Language reset to automatic.",
+    "description": "Status message after resetting language"
+  },
+  "popupModelChangeTitle": {
+    "message": "Change model",
+    "description": "Title for model dropdown button in popup"
+  },
+  "popupModelGroupChat": {
+    "message": "Chat models",
+    "description": "Group label for chat models in model dropdown"
+  },
+  "popupModelGroupImage": {
+    "message": "Image models",
+    "description": "Group label for image models in model dropdown"
+  },
+  "popupModelGroupOther": {
+    "message": "Other models",
+    "description": "Group label for uncategorized models in model dropdown"
+  },
+  "popupModelTypeChat": {
+    "message": "Chat",
+    "description": "Type badge label for chat models"
+  },
+  "popupModelTypeImage": {
+    "message": "Image",
+    "description": "Type badge label for image models"
+  },
+  "popupModelTypeOther": {
+    "message": "Other",
+    "description": "Type badge label for uncategorized models"
+  },
+  "popupThinkingChangeTitle": {
+    "message": "Change thinking level",
+    "description": "Title for thinking dropdown button in popup"
+  },
+  "popupWebToggleTitle": {
+    "message": "Toggle web search",
+    "description": "Title for web search toggle button in popup"
+  },
+  "popupWebToggleLabel": {
+    "message": "Web",
+    "description": "Label on web search toggle button"
+  },
+  "popupClearChatTitle": {
+    "message": "Clear chat",
+    "description": "Title for clear chat button"
+  },
+  "popupSettingsTitle": {
+    "message": "Settings",
+    "description": "Title for settings button"
+  },
+  "popupAttachTitle": {
+    "message": "Add files or images",
+    "description": "Title for attachment button"
+  },
+  "popupInputPlaceholder": {
+    "message": "Ask me anything...",
+    "description": "Placeholder for popup input"
+  },
+  "popupSendTitle": {
+    "message": "Send message",
+    "description": "Title for send button"
+  },
+  "popupStopTitle": {
+    "message": "Stop response",
+    "description": "Title for stop button while waiting"
+  },
+  "popupErrorSendFailed": {
+    "message": "Failed to send message. Please try again.",
+    "description": "Error shown when runtime message send fails"
+  },
+  "popupAttachmentLimitMessage": {
+    "message": "You can only attach up to $1 files per message.",
+    "description": "Attachment limit message"
+  },
+  "popupAttachmentLimitRemoveMessage": {
+    "message": "You can only attach up to $1 files per message. Remove some and try again.",
+    "description": "Attachment limit message when too many are selected"
+  },
+  "popupAttachmentSkippedFilesMessage": {
+    "message": "Some files were skipped (max $1MB each): $2",
+    "description": "Message when some selected attachments are skipped"
+  },
+  "popupWaitingForResponse": {
+    "message": "Waiting for response...",
+    "description": "Loading indicator while waiting for model response"
+  },
+  "popupLoadingLabel": {
+    "message": "Loading...",
+    "description": "Generic loading fallback label"
+  },
+  "popupDownloadLabel": {
+    "message": "Download",
+    "description": "Assistant image action button label"
+  },
+  "popupDownloadTitle": {
+    "message": "Download image",
+    "description": "Assistant image action button title"
+  },
+  "popupActionSavedLabel": {
+    "message": "Saved",
+    "description": "Generic success label on action button"
+  },
+  "popupActionFailedLabel": {
+    "message": "Failed",
+    "description": "Generic failed label on action button"
+  },
+  "popupRegenerateLabel": {
+    "message": "Regenerate",
+    "description": "Regenerate action label"
+  },
+  "popupRegenerateTitle": {
+    "message": "Regenerate response",
+    "description": "Regenerate action title"
+  },
+  "popupCopyLabel": {
+    "message": "Copy",
+    "description": "Copy action label"
+  },
+  "popupCopyTitle": {
+    "message": "Copy response",
+    "description": "Copy action title"
+  },
+  "popupCopiedLabel": {
+    "message": "Copied",
+    "description": "Copy action success label"
+  },
+  "popupErrorRegenerateFailed": {
+    "message": "Failed to regenerate response. Please try again.",
+    "description": "Error shown when regenerate runtime message fails"
+  },
+  "popupClearConfirm": {
+    "message": "Are you sure you want to clear the chat history?",
+    "description": "Confirmation text before clearing chat"
+  },
+  "popupThinkLabelTemplate": {
+    "message": "$1",
+    "description": "Thinking dropdown button label template"
+  },
+  "popupWebDisableTitle": {
+    "message": "Disable web search",
+    "description": "Title when web search is enabled"
+  },
+  "popupWebEnableTitle": {
+    "message": "Enable web search",
+    "description": "Title when web search is disabled"
+  },
+  "popupEmptyStateTitle": {
+    "message": "How can I help you?",
+    "description": "Empty state text in popup"
+  },
+  "popupEmptyStateExamplesLabel": {
+    "message": "Try one of these",
+    "description": "Label above empty-state example prompt pills"
+  },
+  "popupEmptyStateExampleSummarize": {
+    "message": "Summarize this page in 5 bullet points.",
+    "description": "Empty-state example prompt for summarization"
+  },
+  "popupEmptyStateExampleDraftEmail": {
+    "message": "Write a concise follow-up email for a client.",
+    "description": "Empty-state example prompt for writing"
+  },
+  "popupEmptyStateExampleTranslate": {
+    "message": "Translate this text to German and keep the tone.",
+    "description": "Empty-state example prompt for translation"
+  },
+  "popupEmptyStateExampleCodeReview": {
+    "message": "Review this code and point out bugs and risks.",
+    "description": "Empty-state example prompt for coding tasks"
+  },
+  "popupEmptyStateExampleImagePrompt": {
+    "message": "Create an image prompt for a modern app landing page.",
+    "description": "Empty-state example prompt for image generation"
+  },
+  "popupEmptyStateExampleMeetingNotes": {
+    "message": "Turn these rough notes into clear meeting minutes.",
+    "description": "Empty-state example prompt for meeting notes"
+  },
+  "popupEmptyStateExampleWeeklyPlan": {
+    "message": "Plan my week with priorities and time blocks.",
+    "description": "Empty-state example prompt for planning"
+  },
+  "popupEmptyStateExampleExplainConcept": {
+    "message": "Explain this concept like I am new to it.",
+    "description": "Empty-state example prompt for explanations"
+  },
+  "popupEmptyStateExampleRewriteTone": {
+    "message": "Rewrite this message to sound professional but friendly.",
+    "description": "Empty-state example prompt for rewriting tone"
+  },
+  "popupAssistantIconAlt": {
+    "message": "Assistant icon",
+    "description": "Alt text for popup empty-state icon"
+  },
+  "popupAttachLimitTitle": {
+    "message": "Attachment limit reached ($1/$2)",
+    "description": "Attachment button title when limit is reached"
+  },
+  "popupAttachSelectedTitle": {
+    "message": "Add files or images ($1 selected)",
+    "description": "Attachment button title when files are selected"
+  },
+  "popupErrorGeneric": {
+    "message": "Something went wrong. Please try again.",
+    "description": "Generic popup error fallback"
+  },
+  "popupErrorReadFileFailed": {
+    "message": "Failed to read file.",
+    "description": "Error shown when reading a selected file fails"
+  },
+  "popupAttachmentImageToken": {
+    "message": "image",
+    "description": "Token used in serialized attachment summaries for images"
+  },
+  "popupAttachmentImageLabel": {
+    "message": "Image",
+    "description": "Label used in attachment summary pills for images"
+  },
+  "popupAttachmentFileLabel": {
+    "message": "FILE",
+    "description": "Fallback label used in attachment summary pills for unknown file types"
+  },
+  "popupAttachmentSummaryPrefix": {
+    "message": "Attachments",
+    "description": "Prefix used in serialized attachment summary lines"
+  },
+  "bgDefaultSystemMessage": {
+    "message": "You are an AI assistant. Always provide clear, accurate, and concise answers to user queries. If unsure, say so honestly. Be helpful and polite.",
+    "description": "Default system prompt used by background service worker"
+  },
+  "bgImageContextPlaceholder": {
+    "message": "[Assistant generated an image in a previous turn. The raw image payload is omitted from context.]",
+    "description": "Placeholder text used instead of raw image payload in follow-up chat history"
+  },
+  "bgErrorApiKeyMissing": {
+    "message": "Please add a valid OpenAI API key in settings.",
+    "description": "Error when API key is missing"
+  },
+  "bgErrorAttachmentsUnsupported": {
+    "message": "Attachments are only supported with chat models. Switch to a chat model and try again.",
+    "description": "Error when user tries attachments with an image model"
+  },
+  "bgErrorNoContent": {
+    "message": "No content was returned by the model.",
+    "description": "Error when response content is missing"
+  },
+  "bgErrorNoUserMessage": {
+    "message": "No previous user message found to regenerate.",
+    "description": "Error when regenerate is requested without any user message"
+  },
+  "bgErrorNoTextResponse": {
+    "message": "No text response was returned by the model.",
+    "description": "Error when streamed text response is empty"
+  },
+  "bgErrorNoImageResponse": {
+    "message": "No image was returned by the model.",
+    "description": "Error when image generation returns no image"
+  },
+  "bgErrorStreamingUnsupported": {
+    "message": "Streaming is not supported in this environment.",
+    "description": "Error when ReadableStream body is unavailable"
+  },
+  "bgErrorTimeout": {
+    "message": "The request timed out. Please try again.",
+    "description": "Error when OpenAI request exceeds timeout"
+  },
+  "bgErrorApiKeyInvalid": {
+    "message": "Looks like your API key is incorrect. Please check your API key and try again.",
+    "description": "Error when OpenAI returns 401"
+  },
+  "bgErrorFetchStatus": {
+    "message": "Failed to fetch. Status code: $1",
+    "description": "Fallback API error including HTTP status code"
+  },
+  "bgErrorGeneric": {
+    "message": "Something went wrong. Please try again.",
+    "description": "Generic background error fallback"
+  },
+  "bgAttachmentImageToken": {
+    "message": "image",
+    "description": "Token used in serialized user attachment summary for images"
+  },
+  "bgAttachmentsPrefix": {
+    "message": "Attachments",
+    "description": "Prefix used in serialized user attachment summary line"
+  },
+  "thinkingLevelDefault": {
+    "message": "Default",
+    "description": "Label for default thinking level"
+  },
+  "thinkingLevelNone": {
+    "message": "None",
+    "description": "Label for none thinking level"
+  },
+  "thinkingLevelMinimal": {
+    "message": "Minimal",
+    "description": "Label for minimal thinking level"
+  },
+  "thinkingLevelLow": {
+    "message": "Low",
+    "description": "Label for low thinking level"
+  },
+  "thinkingLevelMedium": {
+    "message": "Medium",
+    "description": "Label for medium thinking level"
+  },
+  "thinkingLevelHigh": {
+    "message": "High",
+    "description": "Label for high thinking level"
+  },
+  "thinkingLevelXHigh": {
+    "message": "XHigh",
+    "description": "Label for xhigh thinking level"
+  },
+  "thinkingLevelDefaultWithValue": {
+    "message": "Default ($1)",
+    "description": "Template for default thinking level with resolved effort"
+  },
+  "popupUnnamedFileLabel": {
+    "message": "unnamed file",
+    "description": "Fallback name for rejected files without file name"
+  },
+  "popupAttachmentFallbackName": {
+    "message": "attachment",
+    "description": "Fallback file name for attachments"
+  },
+  "bgAttachmentFallbackName": {
+    "message": "attachment",
+    "description": "Fallback file name for serialized attachment metadata"
+  },
+  "bgErrorStreamingFailed": {
+    "message": "The streaming request failed.",
+    "description": "Fallback error when streaming reports failure"
+  },
+  "extName": {
+    "message": "OpenAI ChatGPT Chrome Extension",
+    "description": "Extension name shown by Chrome"
+  },
+  "extDescription": {
+    "message": "Chat with OpenAI models or generate images without leaving your current page.",
+    "description": "Extension description shown by Chrome"
   }
 }
