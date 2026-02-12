@@ -147,6 +147,24 @@ a {
     border-color: var(--user-accent);
 }
 
+#new-chat-btn {
+    color: var(--user-accent-text);
+    background-color: var(--user-accent);
+    border-color: var(--user-accent);
+}
+
+#new-chat-btn:hover {
+    filter: brightness(1.08);
+}
+
+#new-chat-btn:disabled {
+    background-color: var(--btn-bg-disabled);
+    border-color: var(--btn-border-disabled);
+    color: var(--btn-text);
+    filter: none;
+    transform: none;
+}
+
 .dropdown-label {
     pointer-events: none;
     white-space: nowrap;
@@ -185,6 +203,11 @@ a {
     width: max-content;
     border-radius: 12px;
     gap: 0.5rem;
+}
+
+#chat-dropdown-content {
+    width: min(320px, calc(100vw - 32px));
+    max-width: 320px;
 }
 
 .dropdown-option {
@@ -237,6 +260,24 @@ a {
     white-space: nowrap;
 }
 
+.chat-dropdown-option-input {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    border-radius: 9999px;
+    border: 1px solid #4a4a4a;
+    background: #232323;
+    color: #f0f0f0;
+    padding: 0 10px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+}
+
+.chat-dropdown-option-input::placeholder {
+    color: #9a9a9a;
+}
+
 .chat-dropdown-option-actions {
     display: inline-flex;
     align-items: center;
@@ -266,6 +307,11 @@ a {
     pointer-events: auto;
 }
 
+.chat-dropdown-option.editing .chat-dropdown-option-action {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .chat-dropdown-option-action:hover {
     background-color: #2a2a2a;
     border-color: #454545;
@@ -276,8 +322,6 @@ a {
     color: #f1f1f1;
     border-color: #4a4a4a;
     background-color: #2a2a2a;
-    opacity: 1;
-    pointer-events: auto;
 }
 
 .dropdown-option-label {
@@ -842,4 +886,33 @@ a {
 
 .assistant-info-example-btn:active {
     transform: translateY(0);
+}
+
+#file-drop-overlay {
+    position: fixed;
+    inset: 12px;
+    z-index: 50;
+    border: 2px dashed color-mix(in srgb, var(--user-accent) 70%, #4a4a4a);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--user-accent) 10%, rgba(20, 20, 20, 0.86));
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+#file-drop-overlay[hidden] {
+    display: none !important;
+}
+
+#file-drop-overlay-text {
+    color: #f2f2f2;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    background: rgba(20, 20, 20, 0.72);
+    border: 1px solid #4a4a4a;
+    border-radius: 9999px;
+    padding: 8px 12px;
 }

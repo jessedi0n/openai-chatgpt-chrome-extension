@@ -1,0 +1,10 @@
+html,
+body {
+    width: 100%;
+    min-width: 0;
+}
+
+#chat-container {
+    height: calc(100vh - 136px);
+    min-height: 280px;
+}

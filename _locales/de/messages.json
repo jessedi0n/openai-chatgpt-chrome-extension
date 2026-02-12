@@ -207,6 +207,18 @@
     "message": "Chat löschen",
     "description": "Titel zum Löschen einer Chat-Sitzung aus dem Chat-Dropdown"
   },
+  "popupRenameChatTitle": {
+    "message": "Chat umbenennen",
+    "description": "Titel zum Umbenennen einer Chat-Sitzung im Chat-Dropdown"
+  },
+  "popupSaveChatTitle": {
+    "message": "Chatnamen speichern",
+    "description": "Titel zum Speichern einer Inline-Umbenennung im Chat-Dropdown"
+  },
+  "popupRenameChatPrompt": {
+    "message": "Neuen Chatnamen eingeben:",
+    "description": "Prompt-Text beim Umbenennen eines Chats"
+  },
   "popupPinChatTitle": {
     "message": "Chat anheften",
     "description": "Titel zum Anheften einer Chat-Sitzung im Chat-Dropdown"
@@ -222,6 +234,18 @@
   "popupChatDefaultTitle": {
     "message": "Neuer Chat",
     "description": "Basisbeschriftung für unbenannte Chat-Sitzungen"
+  },
+  "popupChatGroupLabel": {
+    "message": "Chats",
+    "description": "Gruppenlabel oben im Chat-Dropdown"
+  },
+  "popupPinnedLabel": {
+    "message": "Angeheftet",
+    "description": "Badge-Beschriftung fuer angeheftete Chats im Chat-Dropdown"
+  },
+  "popupPinnedChatsGroupLabel": {
+    "message": "Angeheftete Chats",
+    "description": "Gruppenlabel ueber angehefteten Chats im Chat-Dropdown"
   },
   "popupModelGroupChat": {
     "message": "Chat-Modelle",
@@ -270,6 +294,10 @@
   "popupAttachTitle": {
     "message": "Dateien oder Bilder hinzufügen",
     "description": "Titel des Anhang-Buttons"
+  },
+  "popupDropFilesLabel": {
+    "message": "Dateien oder Bilder hier ablegen",
+    "description": "Overlay-Beschriftung beim Ziehen von Dateien ueber das Popup"
   },
   "popupInputPlaceholder": {
     "message": "Frag mich alles...",

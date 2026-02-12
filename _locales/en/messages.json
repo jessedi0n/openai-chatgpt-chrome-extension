@@ -207,6 +207,18 @@
     "message": "Delete chat",
     "description": "Title for deleting a chat session from the chat dropdown"
   },
+  "popupRenameChatTitle": {
+    "message": "Rename chat",
+    "description": "Title for renaming a chat session from the chat dropdown"
+  },
+  "popupSaveChatTitle": {
+    "message": "Save chat name",
+    "description": "Title for saving an inline chat rename in the chat dropdown"
+  },
+  "popupRenameChatPrompt": {
+    "message": "Enter a new chat name:",
+    "description": "Prompt text shown when renaming a chat"
+  },
   "popupPinChatTitle": {
     "message": "Pin chat",
     "description": "Title for pinning a chat session in the chat dropdown"
@@ -222,6 +234,18 @@
   "popupChatDefaultTitle": {
     "message": "New chat",
     "description": "Base label used for untitled chat sessions"
+  },
+  "popupChatGroupLabel": {
+    "message": "Chats",
+    "description": "Group label shown at the top of the chat dropdown"
+  },
+  "popupPinnedLabel": {
+    "message": "Pinned",
+    "description": "Badge label shown for pinned chats in the chat dropdown"
+  },
+  "popupPinnedChatsGroupLabel": {
+    "message": "Pinned chats",
+    "description": "Group label shown above pinned chats in the chat dropdown"
   },
   "popupModelGroupChat": {
     "message": "Chat models",
@@ -270,6 +294,10 @@
   "popupAttachTitle": {
     "message": "Add files or images",
     "description": "Title for attachment button"
+  },
+  "popupDropFilesLabel": {
+    "message": "Drop files or images to attach",
+    "description": "Overlay label shown while dragging files over the popup"
   },
   "popupInputPlaceholder": {
     "message": "Ask me anything...",
