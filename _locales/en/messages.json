@@ -195,6 +195,34 @@
     "message": "Change model",
     "description": "Title for model dropdown button in popup"
   },
+  "popupChatChangeTitle": {
+    "message": "Change chat",
+    "description": "Title for chat dropdown button in popup"
+  },
+  "popupNewChatTitle": {
+    "message": "New chat",
+    "description": "Title for new chat button in popup"
+  },
+  "popupDeleteChatTitle": {
+    "message": "Delete chat",
+    "description": "Title for deleting a chat session from the chat dropdown"
+  },
+  "popupPinChatTitle": {
+    "message": "Pin chat",
+    "description": "Title for pinning a chat session in the chat dropdown"
+  },
+  "popupUnpinChatTitle": {
+    "message": "Unpin chat",
+    "description": "Title for unpinning a chat session in the chat dropdown"
+  },
+  "popupChatFallbackLabel": {
+    "message": "Chat",
+    "description": "Fallback chat label when no chat title is available"
+  },
+  "popupChatDefaultTitle": {
+    "message": "New chat",
+    "description": "Base label used for untitled chat sessions"
+  },
   "popupModelGroupChat": {
     "message": "Chat models",
     "description": "Group label for chat models in model dropdown"

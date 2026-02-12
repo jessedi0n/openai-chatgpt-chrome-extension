@@ -2,7 +2,8 @@ importScripts("models.js");
 
 const OPENAI_API_BASE_URL = "https://api.openai.com/v1";
 const REQUEST_TIMEOUT_MS = 60000;
-const STORAGE_FIELDS = Object.freeze(["apiKey", "chatHistory"]);
+const LEGACY_CHAT_HISTORY_KEY = "chatHistory";
+const MAX_CHAT_SESSIONS = 12;
 const MAX_SYSTEM_MESSAGE_LENGTH = 4000;
 const MAX_ATTACHMENTS_PER_MESSAGE = 6;
 const MAX_ATTACHMENT_DATA_URL_LENGTH = 15 * 1024 * 1024;
@@ -24,6 +25,12 @@ const {
     supportsThinking,
     supportsWebSearch,
 } = OPENAI_MODELS;
+const STORAGE_FIELDS = Object.freeze([
+    "apiKey",
+    STORAGE_KEYS.CHAT_SESSIONS,
+    STORAGE_KEYS.ACTIVE_CHAT_ID,
+    LEGACY_CHAT_HISTORY_KEY,
+]);
 
 let activeRequestContext = null;
 const i18nInitializationPromise = initializeLanguagePreference();
@@ -46,13 +53,22 @@ chrome.runtime.onInstalled.addListener(async function (details) {
             STORAGE_KEYS.ACCENT_COLOR,
             STORAGE_KEYS.SYSTEM_MESSAGE,
             STORAGE_KEYS.LANGUAGE,
-            "chatHistory",
+            STORAGE_KEYS.CHAT_SESSIONS,
+            STORAGE_KEYS.ACTIVE_CHAT_ID,
+            LEGACY_CHAT_HISTORY_KEY,
         ]);
         const updates = {};
         const normalizedModelId = getValidModelId(existingValues[STORAGE_KEYS.MODEL]);
         const normalizedThinkingLevel = getValidThinkingLevel(existingValues[STORAGE_KEYS.THINKING], normalizedModelId);
         const normalizedWebSearchEnabled = getValidWebSearchEnabled(existingValues[STORAGE_KEYS.WEB_SEARCH]);
         const normalizedLanguagePreference = getValidLanguagePreference(existingValues[STORAGE_KEYS.LANGUAGE]);
+        const normalizedChatState = normalizeChatSessionsState(
+            existingValues[STORAGE_KEYS.CHAT_SESSIONS],
+            existingValues[STORAGE_KEYS.ACTIVE_CHAT_ID],
+            "",
+            existingValues[LEGACY_CHAT_HISTORY_KEY],
+            false
+        );
 
         if (normalizedModelId !== existingValues[STORAGE_KEYS.MODEL]) {
             updates[STORAGE_KEYS.MODEL] = normalizedModelId;
@@ -78,8 +94,9 @@ chrome.runtime.onInstalled.addListener(async function (details) {
             updates[STORAGE_KEYS.LANGUAGE] = DEFAULT_LANGUAGE_PREFERENCE;
         }
 
-        if (!Array.isArray(existingValues.chatHistory)) {
-            updates.chatHistory = [];
+        if (normalizedChatState.changed) {
+            updates[STORAGE_KEYS.CHAT_SESSIONS] = normalizedChatState.sessions;
+            updates[STORAGE_KEYS.ACTIVE_CHAT_ID] = normalizedChatState.activeChatId;
         }
 
         if (Object.keys(updates).length > 0) {
@@ -96,12 +113,12 @@ chrome.runtime.onInstalled.addListener(async function (details) {
 
 chrome.runtime.onMessage.addListener(function (message) {
     if (isUserInputMessage(message)) {
-        void handleUserMessage(message.userInput, message.attachments);
+        void handleUserMessage(message.userInput, message.attachments, message.chatId);
         return true;
     }
 
     if (isRegenerateMessage(message)) {
-        void handleRegenerateMessage();
+        void handleRegenerateMessage(message.chatId);
         return true;
     }
 
@@ -125,7 +142,7 @@ function isStopMessage(message) {
     return Boolean(message && message.stopResponse === true);
 }
 
-async function handleUserMessage(rawUserInput, rawAttachments) {
+async function handleUserMessage(rawUserInput, rawAttachments, rawChatId) {
     const requestContext = startActiveRequest();
     try {
         await i18nInitializationPromise;
@@ -141,9 +158,17 @@ async function handleUserMessage(rawUserInput, rawAttachments) {
         const apiKey = sanitizeApiKey(storedData.apiKey);
         const selection = normalizeSelection(storedData);
         const systemMessage = getSystemMessageContent(storedData[STORAGE_KEYS.SYSTEM_MESSAGE]);
-        const chatHistory = buildChatHistory(storedData.chatHistory, systemMessage, userInput, attachments);
+        const chatState = normalizeChatSessionsState(
+            storedData[STORAGE_KEYS.CHAT_SESSIONS],
+            storedData[STORAGE_KEYS.ACTIVE_CHAT_ID],
+            normalizeChatId(rawChatId),
+            storedData[LEGACY_CHAT_HISTORY_KEY],
+            true
+        );
+        const chatHistory = buildChatHistory(chatState.activeSession.history, systemMessage, userInput, attachments);
 
         await persistNormalizedSelection(selection.updates);
+        await persistNormalizedChatState(chatState);
 
         if (!apiKey) {
             throw new Error(getI18nMessage("bgErrorApiKeyMissing", null, "Please add a valid OpenAI API key in settings."));
@@ -177,7 +202,16 @@ async function handleUserMessage(rawUserInput, rawAttachments) {
         }
 
         chatHistory.push({ role: "assistant", content: assistantContent });
-        await setStorageData({ chatHistory: normalizeChatHistoryForStorage(chatHistory) });
+        const nextChatState = updateSessionHistory(
+            chatState.sessions,
+            chatState.activeSession.id,
+            chatHistory,
+            userInput
+        );
+        await setStorageData({
+            [STORAGE_KEYS.CHAT_SESSIONS]: nextChatState.sessions,
+            [STORAGE_KEYS.ACTIVE_CHAT_ID]: nextChatState.activeChatId,
+        });
 
         if (isImageModel(selection.modelId)) {
             emitRuntimeMessage({ imageUrl: assistantContent });
@@ -198,7 +232,7 @@ async function handleUserMessage(rawUserInput, rawAttachments) {
     }
 }
 
-async function handleRegenerateMessage() {
+async function handleRegenerateMessage(rawChatId) {
     const requestContext = startActiveRequest();
     try {
         await i18nInitializationPromise;
@@ -208,14 +242,22 @@ async function handleRegenerateMessage() {
         const apiKey = sanitizeApiKey(storedData.apiKey);
         const selection = normalizeSelection(storedData);
         const systemMessage = getSystemMessageContent(storedData[STORAGE_KEYS.SYSTEM_MESSAGE]);
+        const chatState = normalizeChatSessionsState(
+            storedData[STORAGE_KEYS.CHAT_SESSIONS],
+            storedData[STORAGE_KEYS.ACTIVE_CHAT_ID],
+            normalizeChatId(rawChatId),
+            storedData[LEGACY_CHAT_HISTORY_KEY],
+            false
+        );
 
         await persistNormalizedSelection(selection.updates);
+        await persistNormalizedChatState(chatState);
 
         if (!apiKey) {
             throw new Error(getI18nMessage("bgErrorApiKeyMissing", null, "Please add a valid OpenAI API key in settings."));
         }
 
-        const regenerateContext = getRegenerateContext(storedData.chatHistory, systemMessage);
+        const regenerateContext = getRegenerateContext(chatState.activeSession.history, systemMessage);
 
         let assistantContent;
         if (isImageModel(selection.modelId)) {
@@ -234,7 +276,16 @@ async function handleRegenerateMessage() {
         }
 
         const nextChatHistory = regenerateContext.requestHistory.concat([{ role: "assistant", content: assistantContent }]);
-        await setStorageData({ chatHistory: nextChatHistory });
+        const nextChatState = updateSessionHistory(
+            chatState.sessions,
+            chatState.activeSession.id,
+            nextChatHistory,
+            ""
+        );
+        await setStorageData({
+            [STORAGE_KEYS.CHAT_SESSIONS]: nextChatState.sessions,
+            [STORAGE_KEYS.ACTIVE_CHAT_ID]: nextChatState.activeChatId,
+        });
 
         if (isImageModel(selection.modelId)) {
             emitRuntimeMessage({ imageUrl: assistantContent });
@@ -295,6 +346,193 @@ function sanitizeApiKey(apiKey) {
     }
 
     return apiKey.trim();
+}
+
+function normalizeChatId(rawChatId) {
+    if (typeof rawChatId !== "string") {
+        return "";
+    }
+
+    return rawChatId.trim();
+}
+
+async function persistNormalizedChatState(chatState) {
+    if (!chatState || chatState.changed !== true) {
+        return;
+    }
+
+    await setStorageData({
+        [STORAGE_KEYS.CHAT_SESSIONS]: chatState.sessions,
+        [STORAGE_KEYS.ACTIVE_CHAT_ID]: chatState.activeChatId,
+    });
+}
+
+function normalizeChatSessionsState(rawSessions, rawActiveChatId, preferredChatId, legacyChatHistory, allowCreateRequestedSession) {
+    const sessions = [];
+    const seenIds = new Set();
+    const now = Date.now();
+
+    if (Array.isArray(rawSessions)) {
+        for (const session of rawSessions) {
+            if (!session || typeof session !== "object") {
+                continue;
+            }
+
+            const sessionId = normalizeChatId(session.id);
+            if (!sessionId || seenIds.has(sessionId)) {
+                continue;
+            }
+
+            seenIds.add(sessionId);
+            const createdAt = Number.isFinite(session.createdAt) ? Number(session.createdAt) : now;
+            const updatedAt = Number.isFinite(session.updatedAt) ? Number(session.updatedAt) : createdAt;
+            sessions.push({
+                id: sessionId,
+                title: normalizeSessionTitle(session.title),
+                history: normalizeStoredSessionHistory(session.history),
+                pinned: Boolean(session.pinned),
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+            });
+        }
+    }
+
+    if (sessions.length === 0) {
+        const legacyHistory = normalizeStoredSessionHistory(legacyChatHistory);
+        sessions.push({
+            id: createChatSessionId(),
+            title: generateChatTitleFromHistory(legacyHistory),
+            history: legacyHistory,
+            pinned: false,
+            createdAt: now,
+            updatedAt: now,
+        });
+    }
+
+    const requestedChatId = normalizeChatId(preferredChatId);
+    if (allowCreateRequestedSession === true && requestedChatId && !sessions.some((session) => session.id === requestedChatId)) {
+        sessions.push({
+            id: requestedChatId,
+            title: "",
+            history: [],
+            pinned: false,
+            createdAt: now,
+            updatedAt: now,
+        });
+    }
+
+    const normalizedSessions = normalizeChatSessionsForStorage(sessions);
+    const storedActiveChatId = normalizeChatId(rawActiveChatId);
+    const hasRequestedChat = normalizedSessions.some((session) => session.id === requestedChatId);
+    const hasStoredActive = normalizedSessions.some((session) => session.id === storedActiveChatId);
+    const activeChatId = hasRequestedChat
+        ? requestedChatId
+        : (hasStoredActive ? storedActiveChatId : normalizedSessions[0].id);
+    const activeSession = normalizedSessions.find((session) => session.id === activeChatId) || normalizedSessions[0];
+    const changed = JSON.stringify(Array.isArray(rawSessions) ? rawSessions : []) !== JSON.stringify(normalizedSessions)
+        || storedActiveChatId !== activeChatId;
+
+    return {
+        sessions: normalizedSessions,
+        activeChatId: activeChatId,
+        activeSession: activeSession,
+        changed: changed,
+    };
+}
+
+function updateSessionHistory(sessions, activeChatId, requestHistory, userInputForTitle) {
+    const normalizedSessions = normalizeChatSessionsForStorage(sessions);
+    const sessionIndex = normalizedSessions.findIndex((session) => session.id === activeChatId);
+    if (sessionIndex === -1) {
+        throw new Error(getI18nMessage("bgErrorGeneric", null, "Something went wrong. Please try again."));
+    }
+
+    const nextSessions = normalizedSessions.slice();
+    const currentSession = nextSessions[sessionIndex];
+    const nextHistory = normalizeChatHistoryForStorage(requestHistory);
+    const generatedTitle = generateChatTitleFromUserInput(userInputForTitle)
+        || generateChatTitleFromHistory(nextHistory);
+    nextSessions[sessionIndex] = {
+        ...currentSession,
+        title: normalizeSessionTitle(currentSession.title) || generatedTitle,
+        history: nextHistory,
+        updatedAt: Date.now(),
+    };
+
+    const finalSessions = normalizeChatSessionsForStorage(nextSessions);
+    const hasActiveChat = finalSessions.some((session) => session.id === activeChatId);
+
+    return {
+        sessions: finalSessions,
+        activeChatId: hasActiveChat ? activeChatId : finalSessions[0].id,
+    };
+}
+
+function normalizeChatSessionsForStorage(sessions) {
+    const normalizedSessions = (Array.isArray(sessions) ? sessions.slice() : [])
+        .sort((leftSession, rightSession) => {
+            const leftPinnedScore = leftSession && leftSession.pinned ? 1 : 0;
+            const rightPinnedScore = rightSession && rightSession.pinned ? 1 : 0;
+            if (leftPinnedScore !== rightPinnedScore) {
+                return rightPinnedScore - leftPinnedScore;
+            }
+
+            return Number(rightSession.updatedAt || 0) - Number(leftSession.updatedAt || 0);
+        })
+        .slice(0, MAX_CHAT_SESSIONS);
+
+    return normalizedSessions.map((session) => ({
+        id: session.id,
+        title: normalizeSessionTitle(session.title),
+        history: normalizeStoredSessionHistory(session.history),
+        pinned: Boolean(session.pinned),
+        createdAt: Number.isFinite(session.createdAt) ? Number(session.createdAt) : Date.now(),
+        updatedAt: Number.isFinite(session.updatedAt) ? Number(session.updatedAt) : Date.now(),
+    }));
+}
+
+function normalizeStoredSessionHistory(rawHistory) {
+    return normalizeChatHistoryForStorage(rawHistory);
+}
+
+function normalizeSessionTitle(rawTitle) {
+    if (typeof rawTitle !== "string") {
+        return "";
+    }
+
+    return rawTitle.trim().slice(0, 80);
+}
+
+function generateChatTitleFromUserInput(userInput) {
+    if (typeof userInput !== "string") {
+        return "";
+    }
+
+    const firstLine = userInput.trim().split("\n")[0] || "";
+    return firstLine.slice(0, 52);
+}
+
+function generateChatTitleFromHistory(history) {
+    if (!Array.isArray(history)) {
+        return "";
+    }
+
+    for (const entry of history) {
+        if (!entry || entry.role !== "user" || typeof entry.content !== "string") {
+            continue;
+        }
+
+        const generatedTitle = generateChatTitleFromUserInput(entry.content);
+        if (generatedTitle) {
+            return generatedTitle;
+        }
+    }
+
+    return "";
+}
+
+function createChatSessionId() {
+    return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function buildChatHistory(storedHistory, systemMessage, userInput, attachments) {

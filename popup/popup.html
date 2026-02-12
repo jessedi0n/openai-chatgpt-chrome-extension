@@ -13,6 +13,16 @@
 <body>
     <div id="header-container">
         <div id="controls-container">
+            <div id="chat-dropdown" class="dropdown">
+                <button id="chat-dropdown-btn" class="dropdown-trigger" title="Change chat">
+                    <i class="fa fa-comments"></i>
+                    <i class="fa fa-chevron-down dropdown-chevron" aria-hidden="true"></i>
+                </button>
+                <div id="chat-dropdown-content" class="dropdown-content"></div>
+            </div>
+            <button id="new-chat-btn" class="dropdown-trigger" title="New chat">
+                <i class="fa fa-plus"></i>
+            </button>
             <div id="model-dropdown" class="dropdown">
                 <button id="model-dropdown-btn" class="dropdown-trigger" title="Change model">
                     <i id="model-dropdown-btn-icon" class="fa fa-robot"></i>
@@ -29,15 +39,8 @@
                 </button>
                 <div id="thinking-dropdown-content" class="dropdown-content"></div>
             </div>
-            <button id="web-search-toggle-btn" class="dropdown-trigger" title="Toggle web search">
-                <i class="fa fa-globe"></i>
-                <span class="dropdown-label">Web</span>
-            </button>
         </div>
         <div id="action-btn-container">
-            <button id="clear-chat-btn" title="Clear chat">
-                <i class="fa fa-trash"></i>
-            </button>
             <button id="settings-btn" title="Settings">
                 <i class="fa fa-cog"></i>
             </button>
@@ -50,6 +53,9 @@
         <button id="attach-btn" title="Add files or images">
             <i class="fa fa-plus"></i>
             <span id="attachment-count" hidden>0</span>
+        </button>
+        <button id="web-search-toggle-btn" class="dropdown-trigger" title="Toggle web search">
+            <i class="fa fa-globe"></i>
         </button>
         <textarea id="user-input" placeholder="Ask me anything..." rows="1"></textarea>
         <button id="send-btn" title="Send message">

@@ -43,6 +43,8 @@ const EMPTY_STATE_EXAMPLES = [
 const CODE_BLOCK_REGEX = /```([\w+-]*)\n?([\s\S]*?)```/g;
 const MAX_ATTACHMENTS_PER_MESSAGE = 6;
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_CHAT_SESSIONS = 12;
+const DEFAULT_CHAT_LABEL_FALLBACK = "New chat";
 
 const {
     MODELS,
@@ -78,6 +80,8 @@ class PopupApp {
             selectedThinkingLevel: DEFAULT_THINKING_LEVEL,
             webSearchEnabled: DEFAULT_WEB_SEARCH_ENABLED,
             accentColor: DEFAULT_ACCENT_COLOR,
+            chatSessions: [],
+            activeChatId: "",
             pendingAttachments: [],
             isAwaitingResponse: false,
             pendingAssistantMessage: null,
@@ -93,6 +97,10 @@ class PopupApp {
             sendBtn: document.getElementById("send-btn"),
             clearChatBtn: document.getElementById("clear-chat-btn"),
             settingsBtn: document.getElementById("settings-btn"),
+            chatDropdownBtn: document.getElementById("chat-dropdown-btn"),
+            chatDropdownBtnText: document.getElementById("chat-dropdown-btn-text"),
+            chatDropdownContent: document.getElementById("chat-dropdown-content"),
+            newChatBtn: document.getElementById("new-chat-btn"),
             modelDropdownBtn: document.getElementById("model-dropdown-btn"),
             modelDropdownBtnText: document.getElementById("model-dropdown-btn-text"),
             modelDropdownContent: document.getElementById("model-dropdown-content"),
@@ -117,7 +125,7 @@ class PopupApp {
 
             await Promise.all([
                 this.ensureApiKeyExists(),
-                this.loadChatHistory(),
+                this.loadChatSessions(),
                 this.loadModelSettings(),
                 this.loadAppearanceSettings(),
             ]);
@@ -135,10 +143,14 @@ class PopupApp {
             document.documentElement.lang = OPENAI_MODELS.getResolvedLanguage();
         }
 
+        this.dom.chatDropdownBtn.title = getI18nMessage("popupChatChangeTitle", null, "Change chat");
+        this.dom.newChatBtn.title = getI18nMessage("popupNewChatTitle", null, "New chat");
         this.dom.modelDropdownBtn.title = getI18nMessage("popupModelChangeTitle", null, "Change model");
         this.dom.thinkingDropdownBtn.title = getI18nMessage("popupThinkingChangeTitle", null, "Change thinking level");
         this.dom.webSearchToggleBtn.title = getI18nMessage("popupWebToggleTitle", null, "Toggle web search");
-        this.dom.clearChatBtn.title = getI18nMessage("popupClearChatTitle", null, "Clear chat");
+        if (this.dom.clearChatBtn) {
+            this.dom.clearChatBtn.title = getI18nMessage("popupClearChatTitle", null, "Clear chat");
+        }
         this.dom.settingsBtn.title = getI18nMessage("popupSettingsTitle", null, "Settings");
         this.dom.attachBtn.title = getI18nMessage("popupAttachTitle", null, "Add files or images");
         this.dom.userInput.placeholder = getI18nMessage("popupInputPlaceholder", null, "Ask me anything...");
@@ -148,6 +160,8 @@ class PopupApp {
         if (webLabel) {
             webLabel.innerText = getI18nMessage("popupWebToggleLabel", null, "Web");
         }
+
+        this.renderChatOptions();
     }
 
     bindEvents() {
@@ -184,12 +198,22 @@ class PopupApp {
             void this.handleAttachmentSelection();
         });
 
-        this.dom.clearChatBtn.addEventListener("click", () => {
-            void this.clearChatHistory();
-        });
+        if (this.dom.clearChatBtn) {
+            this.dom.clearChatBtn.addEventListener("click", () => {
+                void this.clearChatHistory();
+            });
+        }
 
         this.dom.settingsBtn.addEventListener("click", () => {
             chrome.runtime.openOptionsPage();
+        });
+
+        this.dom.chatDropdownBtn.addEventListener("click", () => {
+            this.toggleDropdown(this.dom.chatDropdownBtn, this.dom.chatDropdownContent);
+        });
+
+        this.dom.newChatBtn.addEventListener("click", () => {
+            void this.createNewChat(true);
         });
 
         this.dom.modelDropdownBtn.addEventListener("click", () => {
@@ -240,6 +264,13 @@ class PopupApp {
             const webSearchChange = changes[STORAGE_KEYS.WEB_SEARCH];
             this.setWebSearchEnabled(getValidWebSearchEnabled(webSearchChange.newValue), false);
         }
+
+        if (
+            !this.state.isAwaitingResponse
+            && (changes[STORAGE_KEYS.CHAT_SESSIONS] || changes[STORAGE_KEYS.ACTIVE_CHAT_ID])
+        ) {
+            void this.loadChatSessions();
+        }
     }
 
     async ensureApiKeyExists() {
@@ -250,28 +281,25 @@ class PopupApp {
         }
     }
 
-    async loadChatHistory() {
-        const result = await getStorageData(["chatHistory"]);
-        const history = Array.isArray(result.chatHistory) ? result.chatHistory : [];
+    async loadChatSessions() {
+        const result = await getStorageData([STORAGE_KEYS.CHAT_SESSIONS, STORAGE_KEYS.ACTIVE_CHAT_ID, "chatHistory"]);
+        const normalizedState = normalizeChatSessionsState(
+            result[STORAGE_KEYS.CHAT_SESSIONS],
+            result[STORAGE_KEYS.ACTIVE_CHAT_ID],
+            result.chatHistory
+        );
 
-        this.dom.chatMessages.innerHTML = "";
-
-        for (const entry of history) {
-            if (!entry || typeof entry.content !== "string" || !isRenderableRole(entry.role)) {
-                continue;
-            }
-
-            this.appendMessage(entry.role, entry.content);
+        if (normalizedState.changed) {
+            await setStorageData({
+                [STORAGE_KEYS.CHAT_SESSIONS]: normalizedState.sessions,
+                [STORAGE_KEYS.ACTIVE_CHAT_ID]: normalizedState.activeChatId,
+            });
         }
 
-        if (this.getMessageCount() === 0) {
-            this.showAssistantInfo();
-        } else {
-            this.hideAssistantInfo();
-            this.scrollChatToBottom();
-        }
-
-        this.updateClearChatButtonState();
+        this.state.chatSessions = normalizedState.sessions;
+        this.state.activeChatId = normalizedState.activeChatId;
+        this.renderChatOptions();
+        this.renderActiveChatHistory();
     }
 
     async loadModelSettings() {
@@ -332,6 +360,10 @@ class PopupApp {
             return;
         }
 
+        if (!this.state.activeChatId) {
+            await this.createNewChat(false);
+        }
+
         const visibleUserMessage = buildUserMessagePreview(userMessage, attachments);
         const attachmentsPayload = attachments.map(cloneAttachmentForRuntime);
 
@@ -343,7 +375,9 @@ class PopupApp {
         this.setAwaitingResponse(true);
         this.showPendingAssistantMessage();
 
-        chrome.runtime.sendMessage({ userInput: userMessage, attachments: attachmentsPayload }, () => {
+        this.touchActiveChatSession(userMessage);
+
+        chrome.runtime.sendMessage({ userInput: userMessage, attachments: attachmentsPayload, chatId: this.state.activeChatId }, () => {
             if (chrome.runtime.lastError) {
                 this.removePendingAssistantMessage();
                 this.state.pendingAttachments = attachments;
@@ -889,11 +923,15 @@ class PopupApp {
             return;
         }
 
+        if (!this.state.activeChatId) {
+            return;
+        }
+
         this.prepareRegenerateTarget(targetMessageElement);
         this.setAwaitingResponse(true);
         buttonElement.disabled = true;
 
-        chrome.runtime.sendMessage({ regenerate: true }, () => {
+        chrome.runtime.sendMessage({ regenerate: true, chatId: this.state.activeChatId }, () => {
             buttonElement.disabled = false;
             if (chrome.runtime.lastError) {
                 this.reportSystemError(getI18nMessage("popupErrorRegenerateFailed", null, "Failed to regenerate response. Please try again."));
@@ -968,11 +1006,26 @@ class PopupApp {
         }
 
         try {
-            await setStorageData({ chatHistory: [] });
+            const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === this.state.activeChatId);
+            if (sessionIndex === -1) {
+                return;
+            }
+
+            const nextSessions = this.state.chatSessions.slice();
+            const currentSession = nextSessions[sessionIndex];
+            nextSessions[sessionIndex] = {
+                ...currentSession,
+                history: [],
+                updatedAt: Date.now(),
+            };
+
+            this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+            await this.persistChatState();
             this.dom.chatMessages.innerHTML = "";
             this.state.pendingAssistantMessage = null;
             this.state.streamingAssistantMessage = null;
             this.clearPendingAttachments();
+            this.renderChatOptions();
             this.showAssistantInfo();
             this.updateClearChatButtonState();
             this.updateComposerState();
@@ -985,6 +1038,8 @@ class PopupApp {
         this.state.isAwaitingResponse = isAwaitingResponse;
         this.dom.userInput.disabled = isAwaitingResponse;
         this.dom.attachBtn.disabled = isAwaitingResponse;
+        this.dom.chatDropdownBtn.disabled = isAwaitingResponse;
+        this.dom.newChatBtn.disabled = isAwaitingResponse;
         this.dom.sendBtn.innerHTML = isAwaitingResponse ? STOP_ICON_HTML : SEND_ICON_HTML;
         this.dom.sendBtn.title = isAwaitingResponse
             ? getI18nMessage("popupStopTitle", null, "Stop response")
@@ -1012,6 +1067,244 @@ class PopupApp {
         this.dom.userInput.style.height = `${nextHeight}px`;
         this.dom.userInput.style.overflowY = this.dom.userInput.scrollHeight > 100 ? "scroll" : "auto";
         this.dom.userInput.classList.toggle("multiline", isTextareaMultiline(this.dom.userInput));
+    }
+
+    renderChatOptions() {
+        this.dom.chatDropdownContent.innerHTML = "";
+
+        const sessions = normalizeChatSessionsForUi(this.state.chatSessions);
+        for (let index = 0; index < sessions.length; index += 1) {
+            const session = sessions[index];
+            const option = document.createElement("div");
+            option.className = "dropdown-option chat-dropdown-option";
+            option.dataset.chatId = session.id;
+            option.addEventListener("click", () => {
+                void this.setActiveChatSession(session.id, true);
+                this.closeDropdown(this.dom.chatDropdownBtn, this.dom.chatDropdownContent);
+            });
+
+            const chatTitle = getSessionDisplayTitle(session, index);
+            const titleElement = document.createElement("span");
+            titleElement.className = "chat-dropdown-option-title";
+            titleElement.innerText = chatTitle;
+            option.appendChild(titleElement);
+
+            const actionsElement = document.createElement("div");
+            actionsElement.className = "chat-dropdown-option-actions";
+
+            const pinButton = document.createElement("button");
+            pinButton.type = "button";
+            pinButton.className = "chat-dropdown-option-action chat-dropdown-option-pin";
+            pinButton.innerHTML = '<i class="fa fa-thumbtack"></i>';
+            pinButton.classList.toggle("active", Boolean(session.pinned));
+            const pinButtonLabel = session.pinned
+                ? getI18nMessage("popupUnpinChatTitle", null, "Unpin chat")
+                : getI18nMessage("popupPinChatTitle", null, "Pin chat");
+            pinButton.title = pinButtonLabel;
+            pinButton.setAttribute("aria-label", pinButtonLabel);
+            pinButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                void this.toggleChatSessionPinned(session.id);
+            });
+            actionsElement.appendChild(pinButton);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "chat-dropdown-option-action chat-dropdown-option-delete";
+            deleteButton.innerHTML = '<i class="fa fa-trash"></i>';
+            deleteButton.title = getI18nMessage("popupDeleteChatTitle", null, "Delete chat");
+            deleteButton.setAttribute("aria-label", getI18nMessage("popupDeleteChatTitle", null, "Delete chat"));
+            deleteButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                void this.deleteChatSession(session.id);
+            });
+            actionsElement.appendChild(deleteButton);
+            option.appendChild(actionsElement);
+
+            this.dom.chatDropdownContent.appendChild(option);
+        }
+
+        this.dom.chatDropdownContent.querySelectorAll(".dropdown-option").forEach((option) => {
+            option.classList.toggle("active", option.dataset.chatId === this.state.activeChatId);
+        });
+
+        const activeSessionIndex = sessions.findIndex((session) => session.id === this.state.activeChatId);
+        const activeSession = activeSessionIndex >= 0 ? sessions[activeSessionIndex] : null;
+        setElementText(
+            this.dom.chatDropdownBtnText,
+            activeSession
+                ? getSessionDisplayTitle(activeSession, activeSessionIndex)
+                : getI18nMessage("popupChatFallbackLabel", null, "Chat")
+        );
+    }
+
+    renderActiveChatHistory() {
+        this.dom.chatMessages.innerHTML = "";
+
+        const activeSession = this.getActiveChatSession();
+        const history = activeSession && Array.isArray(activeSession.history)
+            ? activeSession.history
+            : [];
+
+        for (const entry of history) {
+            if (!entry || typeof entry.content !== "string" || !isRenderableRole(entry.role)) {
+                continue;
+            }
+
+            this.appendMessage(entry.role, entry.content);
+        }
+
+        if (this.getMessageCount() === 0) {
+            this.showAssistantInfo();
+        } else {
+            this.hideAssistantInfo();
+            this.scrollChatToBottom();
+        }
+
+        this.updateClearChatButtonState();
+    }
+
+    getActiveChatSession() {
+        return this.state.chatSessions.find((session) => session.id === this.state.activeChatId) || null;
+    }
+
+    async setActiveChatSession(chatId, persist) {
+        if (typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const hasSession = this.state.chatSessions.some((session) => session.id === chatId);
+        if (!hasSession) {
+            return;
+        }
+
+        this.state.activeChatId = chatId;
+        this.renderChatOptions();
+        this.renderActiveChatHistory();
+
+        if (persist) {
+            await setStorageData({ [STORAGE_KEYS.ACTIVE_CHAT_ID]: chatId });
+        }
+    }
+
+    async createNewChat(persist) {
+        if (this.state.isAwaitingResponse) {
+            return;
+        }
+
+        const timestamp = Date.now();
+        const newSession = {
+            id: createChatSessionId(),
+            title: "",
+            history: [],
+            pinned: false,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+        };
+
+        const nextSessions = [newSession].concat(this.state.chatSessions);
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions).slice(0, MAX_CHAT_SESSIONS);
+        this.state.activeChatId = newSession.id;
+
+        if (persist) {
+            await this.persistChatState();
+        }
+
+        this.dom.chatMessages.innerHTML = "";
+        this.renderChatOptions();
+        this.showAssistantInfo();
+        this.updateClearChatButtonState();
+        this.updateComposerState();
+    }
+
+    async deleteChatSession(chatId) {
+        if (this.state.isAwaitingResponse || typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const sessionExists = this.state.chatSessions.some((session) => session.id === chatId);
+        if (!sessionExists) {
+            return;
+        }
+
+        let nextSessions = this.state.chatSessions.filter((session) => session.id !== chatId);
+        nextSessions = normalizeChatSessionsForUi(nextSessions);
+
+        if (nextSessions.length === 0) {
+            const timestamp = Date.now();
+            nextSessions = [{
+                id: createChatSessionId(),
+                title: "",
+                history: [],
+                pinned: false,
+                createdAt: timestamp,
+                updatedAt: timestamp,
+            }];
+        }
+
+        const nextActiveChatId = this.state.activeChatId === chatId
+            ? nextSessions[0].id
+            : this.state.activeChatId;
+
+        this.state.chatSessions = nextSessions;
+        this.state.activeChatId = nextActiveChatId;
+        await this.persistChatState();
+        this.renderChatOptions();
+        this.renderActiveChatHistory();
+        this.updateComposerState();
+    }
+
+    async toggleChatSessionPinned(chatId) {
+        if (this.state.isAwaitingResponse || typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === chatId);
+        if (sessionIndex === -1) {
+            return;
+        }
+
+        const nextSessions = this.state.chatSessions.slice();
+        const targetSession = { ...nextSessions[sessionIndex] };
+        targetSession.pinned = !Boolean(targetSession.pinned);
+        targetSession.updatedAt = Date.now();
+        nextSessions[sessionIndex] = targetSession;
+
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+        await this.persistChatState();
+        this.renderChatOptions();
+    }
+
+    touchActiveChatSession(userMessage) {
+        const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === this.state.activeChatId);
+        if (sessionIndex === -1) {
+            return;
+        }
+
+        const nextSessions = this.state.chatSessions.slice();
+        const activeSession = { ...nextSessions[sessionIndex] };
+        activeSession.updatedAt = Date.now();
+
+        const generatedTitle = generateChatTitleFromUserMessage(userMessage);
+        if (!activeSession.title && generatedTitle) {
+            activeSession.title = generatedTitle;
+        }
+
+        nextSessions[sessionIndex] = activeSession;
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+        this.renderChatOptions();
+        void this.persistChatState().catch((error) => {
+            this.reportSystemError(getSafeErrorMessage(error));
+        });
+    }
+
+    async persistChatState() {
+        await setStorageData({
+            [STORAGE_KEYS.CHAT_SESSIONS]: this.state.chatSessions,
+            [STORAGE_KEYS.ACTIVE_CHAT_ID]: this.state.activeChatId,
+        });
     }
 
     renderModelOptions() {
@@ -1069,7 +1362,7 @@ class PopupApp {
     setSelectedModel(modelId, persist) {
         this.state.selectedModelId = getValidModelId(modelId);
         const modelInfo = getModelById(this.state.selectedModelId) || getModelById(DEFAULT_MODEL_ID);
-        this.dom.modelDropdownBtnText.innerText = modelInfo.label;
+        setElementText(this.dom.modelDropdownBtnText, modelInfo.label);
 
         this.dom.modelDropdownContent.querySelectorAll(".dropdown-option").forEach((option) => {
             option.classList.toggle("active", option.dataset.modelId === this.state.selectedModelId);
@@ -1092,7 +1385,7 @@ class PopupApp {
     setSelectedThinkingLevel(thinkingLevel, persist) {
         this.state.selectedThinkingLevel = getValidThinkingLevel(thinkingLevel, this.state.selectedModelId);
         const thinkingLabel = getThinkingLabel(this.state.selectedThinkingLevel, this.state.selectedModelId);
-        this.dom.thinkingDropdownBtnText.innerText = getI18nMessage("popupThinkLabelTemplate", thinkingLabel, thinkingLabel);
+        setElementText(this.dom.thinkingDropdownBtnText, getI18nMessage("popupThinkLabelTemplate", thinkingLabel, thinkingLabel));
 
         this.dom.thinkingDropdownContent.querySelectorAll(".dropdown-option").forEach((option) => {
             option.classList.toggle("active", option.dataset.thinkingLevel === this.state.selectedThinkingLevel);
@@ -1148,6 +1441,7 @@ class PopupApp {
     }
 
     closeAllDropdowns() {
+        this.closeDropdown(this.dom.chatDropdownBtn, this.dom.chatDropdownContent);
         this.closeDropdown(this.dom.modelDropdownBtn, this.dom.modelDropdownContent);
         this.closeDropdown(this.dom.thinkingDropdownBtn, this.dom.thinkingDropdownContent);
     }
@@ -1225,6 +1519,10 @@ class PopupApp {
     }
 
     updateClearChatButtonState() {
+        if (!this.dom.clearChatBtn) {
+            return;
+        }
+
         this.dom.clearChatBtn.disabled = this.getMessageCount() === 0;
     }
 
@@ -1257,6 +1555,7 @@ class PopupApp {
         await setLanguagePreference(normalizedLanguagePreference);
 
         this.applyLocalization();
+        this.renderChatOptions();
         this.renderModelOptions();
         this.setSelectedModel(this.state.selectedModelId, false);
         this.renderThinkingOptions();
@@ -1304,6 +1603,152 @@ class PopupApp {
                 )
                 : getI18nMessage("popupAttachTitle", null, "Add files or images");
     }
+}
+
+function normalizeChatSessionsState(rawSessions, rawActiveChatId, legacyChatHistory) {
+    const sessions = [];
+    const seenIds = new Set();
+    const now = Date.now();
+
+    if (Array.isArray(rawSessions)) {
+        for (const session of rawSessions) {
+            if (!session || typeof session !== "object") {
+                continue;
+            }
+
+            const sessionId = typeof session.id === "string" ? session.id.trim() : "";
+            if (!sessionId || seenIds.has(sessionId)) {
+                continue;
+            }
+
+            seenIds.add(sessionId);
+            const normalizedHistory = normalizeStoredChatHistory(session.history);
+            sessions.push({
+                id: sessionId,
+                title: typeof session.title === "string" ? session.title.trim().slice(0, 80) : "",
+                history: normalizedHistory,
+                pinned: Boolean(session.pinned),
+                createdAt: Number.isFinite(session.createdAt) ? Number(session.createdAt) : now,
+                updatedAt: Number.isFinite(session.updatedAt) ? Number(session.updatedAt) : now,
+            });
+        }
+    }
+
+    if (sessions.length === 0) {
+        const legacyHistory = normalizeStoredChatHistory(legacyChatHistory);
+        sessions.push({
+            id: createChatSessionId(),
+            title: generateChatTitleFromHistory(legacyHistory),
+            history: legacyHistory,
+            pinned: false,
+            createdAt: now,
+            updatedAt: now,
+        });
+    }
+
+    const normalizedSessions = normalizeChatSessionsForUi(sessions).slice(0, MAX_CHAT_SESSIONS);
+    const preferredActiveChatId = typeof rawActiveChatId === "string" ? rawActiveChatId : "";
+    const hasPreferredActive = normalizedSessions.some((session) => session.id === preferredActiveChatId);
+    const activeChatId = hasPreferredActive
+        ? preferredActiveChatId
+        : normalizedSessions[0].id;
+
+    const changed = (
+        !Array.isArray(rawSessions)
+        || normalizedSessions.length !== rawSessions.length
+        || preferredActiveChatId !== activeChatId
+        || normalizedSessions.some((session, index) => {
+            const rawSession = rawSessions[index];
+            return !rawSession
+                || rawSession.id !== session.id
+                || rawSession.title !== session.title
+                || Boolean(rawSession.pinned) !== Boolean(session.pinned)
+                || rawSession.createdAt !== session.createdAt
+                || rawSession.updatedAt !== session.updatedAt
+                || JSON.stringify(rawSession.history) !== JSON.stringify(session.history);
+        })
+    );
+
+    return {
+        sessions: normalizedSessions,
+        activeChatId: activeChatId,
+        changed,
+    };
+}
+
+function normalizeChatSessionsForUi(sessions) {
+    return (Array.isArray(sessions) ? sessions.slice() : [])
+        .sort((leftSession, rightSession) => {
+            const leftPinnedScore = leftSession && leftSession.pinned ? 1 : 0;
+            const rightPinnedScore = rightSession && rightSession.pinned ? 1 : 0;
+            if (leftPinnedScore !== rightPinnedScore) {
+                return rightPinnedScore - leftPinnedScore;
+            }
+
+            return Number(rightSession.updatedAt || 0) - Number(leftSession.updatedAt || 0);
+        })
+        .slice(0, MAX_CHAT_SESSIONS);
+}
+
+function normalizeStoredChatHistory(rawHistory) {
+    if (!Array.isArray(rawHistory)) {
+        return [];
+    }
+
+    const normalizedHistory = [];
+    for (const entry of rawHistory) {
+        if (!entry || typeof entry !== "object") {
+            continue;
+        }
+
+        if (!isRenderableRole(entry.role) || typeof entry.content !== "string") {
+            continue;
+        }
+
+        normalizedHistory.push({ role: entry.role, content: entry.content });
+    }
+
+    return normalizedHistory;
+}
+
+function getSessionDisplayTitle(session, index) {
+    const title = session && typeof session.title === "string" ? session.title.trim() : "";
+    if (title.length > 0) {
+        return title.slice(0, 52);
+    }
+
+    const fallbackBase = getI18nMessage("popupChatDefaultTitle", null, DEFAULT_CHAT_LABEL_FALLBACK);
+    return `${fallbackBase} ${index + 1}`;
+}
+
+function generateChatTitleFromUserMessage(userMessage) {
+    if (typeof userMessage !== "string") {
+        return "";
+    }
+
+    const firstLine = userMessage.trim().split("\n")[0] || "";
+    return firstLine.slice(0, 52);
+}
+
+function generateChatTitleFromHistory(history) {
+    if (!Array.isArray(history)) {
+        return "";
+    }
+
+    for (const entry of history) {
+        if (entry && entry.role === "user" && typeof entry.content === "string") {
+            const generatedTitle = generateChatTitleFromUserMessage(entry.content);
+            if (generatedTitle) {
+                return generatedTitle;
+            }
+        }
+    }
+
+    return "";
+}
+
+function createChatSessionId() {
+    return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function parseCodeFenceSegments(text) {
@@ -1700,6 +2145,14 @@ function isImageContent(content) {
 
 function isRenderableRole(role) {
     return role === "user" || role === "assistant";
+}
+
+function setElementText(element, text) {
+    if (!(element instanceof HTMLElement)) {
+        return;
+    }
+
+    element.innerText = typeof text === "string" ? text : String(text ?? "");
 }
 
 function getStorageData(keys) {

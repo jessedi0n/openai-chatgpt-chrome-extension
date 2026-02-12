@@ -195,6 +195,34 @@
     "message": "Modell ändern",
     "description": "Titel des Modell-Dropdowns im Popup"
   },
+  "popupChatChangeTitle": {
+    "message": "Chat wechseln",
+    "description": "Titel des Chat-Dropdown-Buttons im Popup"
+  },
+  "popupNewChatTitle": {
+    "message": "Neuer Chat",
+    "description": "Titel des Buttons für neuen Chat im Popup"
+  },
+  "popupDeleteChatTitle": {
+    "message": "Chat löschen",
+    "description": "Titel zum Löschen einer Chat-Sitzung aus dem Chat-Dropdown"
+  },
+  "popupPinChatTitle": {
+    "message": "Chat anheften",
+    "description": "Titel zum Anheften einer Chat-Sitzung im Chat-Dropdown"
+  },
+  "popupUnpinChatTitle": {
+    "message": "Chat lösen",
+    "description": "Titel zum Lösen einer angehefteten Chat-Sitzung im Chat-Dropdown"
+  },
+  "popupChatFallbackLabel": {
+    "message": "Chat",
+    "description": "Fallback-Beschriftung, wenn kein Chat-Titel verfügbar ist"
+  },
+  "popupChatDefaultTitle": {
+    "message": "Neuer Chat",
+    "description": "Basisbeschriftung für unbenannte Chat-Sitzungen"
+  },
   "popupModelGroupChat": {
     "message": "Chat-Modelle",
     "description": "Gruppenlabel für Chat-Modelle im Modell-Dropdown"
