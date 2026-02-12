@@ -105,6 +105,17 @@ a {
     border-top: 2px solid var(--panel-border);
 }
 
+.input-container.multiline-layout {
+    grid-template-columns: 30px 30px 1fr 30px;
+    grid-template-rows: auto 30px;
+    grid-template-areas:
+        "input input input input"
+        "attach web spacer send";
+    column-gap: 8px;
+    row-gap: 8px;
+    align-items: end;
+}
+
 .dropdown {
     position: relative;
     display: inline-block;
@@ -363,6 +374,11 @@ a {
     border-radius: 12px;
 }
 
+.input-container.multiline-layout #user-input {
+    grid-area: input;
+    padding: 10px 12px;
+}
+
 #user-input::placeholder {
     color: #9d9d9d;
 }
@@ -379,8 +395,8 @@ a {
 } */
 
 #chat-container {
-    height: 400px;
     position: relative;
+    height: 400px;
 }
 
 #chat-messages {
@@ -671,11 +687,6 @@ a {
     transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease, filter 120ms ease;
 }
 
-#user-input.multiline + #send-btn {
-    align-self: end;
-    margin-bottom: 6px;
-}
-
 #attach-btn {
     grid-area: 1 / 1;
     justify-self: start;
@@ -694,6 +705,13 @@ a {
     cursor: pointer;
     position: relative;
     transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.input-container.multiline-layout #attach-btn {
+    grid-area: attach;
+    justify-self: start;
+    align-self: end;
+    margin-left: 0;
 }
 
 #attach-btn:hover {
@@ -732,6 +750,13 @@ a {
     height: 30px;
     padding: 0;
     gap: 0;
+}
+
+.input-container.multiline-layout #web-search-toggle-btn {
+    grid-area: web;
+    justify-self: start;
+    align-self: end;
+    margin-left: 0;
 }
 
 #web-search-toggle-btn:hover {
@@ -775,6 +800,14 @@ a {
     cursor: not-allowed;
     transform: none;
     filter: none;
+}
+
+.input-container.multiline-layout #send-btn {
+    grid-area: send;
+    justify-self: end;
+    align-self: end;
+    margin-right: 0;
+    margin-bottom: 0;
 }
 
 #send-btn:not(:disabled):hover {

@@ -90,6 +90,7 @@ class PopupApp {
         };
 
         this.dom = {
+            inputContainer: document.querySelector(".input-container"),
             chatMessages: document.getElementById("chat-messages"),
             userInput: document.getElementById("user-input"),
             attachBtn: document.getElementById("attach-btn"),
@@ -1164,7 +1165,11 @@ class PopupApp {
         const nextHeight = Math.min(this.dom.userInput.scrollHeight, 100);
         this.dom.userInput.style.height = `${nextHeight}px`;
         this.dom.userInput.style.overflowY = this.dom.userInput.scrollHeight > 100 ? "scroll" : "auto";
-        this.dom.userInput.classList.toggle("multiline", isTextareaMultiline(this.dom.userInput));
+        const isMultiline = isTextareaMultiline(this.dom.userInput);
+        this.dom.userInput.classList.toggle("multiline", isMultiline);
+        if (this.dom.inputContainer) {
+            this.dom.inputContainer.classList.toggle("multiline-layout", isMultiline);
+        }
     }
 
     renderChatOptions() {

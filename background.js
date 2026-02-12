@@ -111,22 +111,34 @@ chrome.runtime.onInstalled.addListener(async function (details) {
     }
 });
 
-chrome.runtime.onMessage.addListener(function (message) {
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (isUserInputMessage(message)) {
         void handleUserMessage(message.userInput, message.attachments, message.chatId);
-        return true;
+        if (typeof sendResponse === "function") {
+            sendResponse({ accepted: true });
+        }
+        return false;
     }
 
     if (isRegenerateMessage(message)) {
         void handleRegenerateMessage(message.chatId);
-        return true;
-    }
-
-    if (isStopMessage(message)) {
-        cancelActiveRequest();
+        if (typeof sendResponse === "function") {
+            sendResponse({ accepted: true });
+        }
         return false;
     }
 
+    if (isStopMessage(message)) {
+        const canceled = cancelActiveRequest();
+        if (typeof sendResponse === "function") {
+            sendResponse({ canceled });
+        }
+        return false;
+    }
+
+    if (typeof sendResponse === "function") {
+        sendResponse({ accepted: false });
+    }
     return false;
 });
 
