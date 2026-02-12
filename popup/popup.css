@@ -53,7 +53,7 @@ a {
 
 #chat-messages::-webkit-scrollbar-track,
 .code-block::-webkit-scrollbar-track {
-    background: #1b1b1b;
+    background: transparent;
     border-radius: 9999px;
 }
 
@@ -105,6 +105,17 @@ a {
     border-top: 2px solid var(--panel-border);
 }
 
+.input-container.multiline-layout {
+    grid-template-columns: 30px 30px 1fr 30px;
+    grid-template-rows: auto 30px;
+    grid-template-areas:
+        "input input input input"
+        "attach web spacer send";
+    column-gap: 8px;
+    row-gap: 8px;
+    align-items: end;
+}
+
 .dropdown {
     position: relative;
     display: inline-block;
@@ -147,6 +158,24 @@ a {
     border-color: var(--user-accent);
 }
 
+#new-chat-btn {
+    color: var(--user-accent-text);
+    background-color: var(--user-accent);
+    border-color: var(--user-accent);
+}
+
+#new-chat-btn:hover {
+    filter: brightness(1.08);
+}
+
+#new-chat-btn:disabled {
+    background-color: var(--btn-bg-disabled);
+    border-color: var(--btn-border-disabled);
+    color: var(--btn-text);
+    filter: none;
+    transform: none;
+}
+
 .dropdown-label {
     pointer-events: none;
     white-space: nowrap;
@@ -187,6 +216,11 @@ a {
     gap: 0.5rem;
 }
 
+#chat-dropdown-content {
+    width: min(320px, calc(100vw - 32px));
+    max-width: 320px;
+}
+
 .dropdown-option {
     padding: 10px;
     border-radius: 9999px;
@@ -221,6 +255,86 @@ a {
     gap: 10px;
 }
 
+.chat-dropdown-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 220px;
+}
+
+.chat-dropdown-option-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-dropdown-option-input {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    border-radius: 9999px;
+    border: 1px solid #4a4a4a;
+    background: #232323;
+    color: #f0f0f0;
+    padding: 0 10px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+}
+
+.chat-dropdown-option-input::placeholder {
+    color: #9a9a9a;
+}
+
+.chat-dropdown-option-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.chat-dropdown-option-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #8f8f8f;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease, color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+
+.chat-dropdown-option:hover .chat-dropdown-option-action,
+.chat-dropdown-option:focus-within .chat-dropdown-option-action {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.chat-dropdown-option.editing .chat-dropdown-option-action {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.chat-dropdown-option-action:hover {
+    background-color: #2a2a2a;
+    border-color: #454545;
+    color: #f1f1f1;
+}
+
+.chat-dropdown-option-pin.active {
+    color: #f1f1f1;
+    border-color: #4a4a4a;
+    background-color: #2a2a2a;
+}
+
 .dropdown-option-label {
     white-space: nowrap;
 }
@@ -244,7 +358,7 @@ a {
     outline: none;
     color: var(--btn-text);
     font-family: inherit;
-    padding: 10px 52px 10px 52px;
+    padding: 10px 52px 10px 88px;
     background-color: var(--btn-bg);
     border-radius: 9999px;
     border: 1px solid var(--btn-border);
@@ -258,6 +372,11 @@ a {
 
 #user-input.multiline {
     border-radius: 12px;
+}
+
+.input-container.multiline-layout #user-input {
+    grid-area: input;
+    padding: 10px 12px;
 }
 
 #user-input::placeholder {
@@ -276,8 +395,8 @@ a {
 } */
 
 #chat-container {
-    height: 400px;
     position: relative;
+    height: 400px;
 }
 
 #chat-messages {
@@ -336,6 +455,31 @@ a {
 
 .assistant-link:hover {
     color: #a7c7ff;
+}
+
+.assistant-markdown-heading {
+    margin: 0;
+    color: #f3f3f3;
+    line-height: 1.35;
+    font-weight: 650;
+}
+
+.assistant-markdown-heading-level-1 {
+    font-size: 1.18rem;
+}
+
+.assistant-markdown-heading-level-2 {
+    font-size: 1.07rem;
+}
+
+.assistant-markdown-heading-level-3 {
+    font-size: 1rem;
+}
+
+.assistant-markdown-heading-level-4,
+.assistant-markdown-heading-level-5,
+.assistant-markdown-heading-level-6 {
+    font-size: 0.95rem;
 }
 
 .user {
@@ -543,11 +687,6 @@ a {
     transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease, filter 120ms ease;
 }
 
-#user-input.multiline + #send-btn {
-    align-self: end;
-    margin-bottom: 6px;
-}
-
 #attach-btn {
     grid-area: 1 / 1;
     justify-self: start;
@@ -568,6 +707,13 @@ a {
     transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
+.input-container.multiline-layout #attach-btn {
+    grid-area: attach;
+    justify-self: start;
+    align-self: end;
+    margin-left: 0;
+}
+
 #attach-btn:hover {
     background-color: var(--btn-bg-hover);
     border-color: var(--btn-border-hover);
@@ -582,6 +728,51 @@ a {
 }
 
 #attach-btn.has-attachments {
+    border-color: var(--user-accent);
+    color: var(--user-accent);
+}
+
+#web-search-toggle-btn {
+    grid-area: 1 / 1;
+    justify-self: start;
+    align-self: center;
+    margin-left: 42px;
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--btn-text);
+    background-color: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    border-radius: 9999px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    gap: 0;
+}
+
+.input-container.multiline-layout #web-search-toggle-btn {
+    grid-area: web;
+    justify-self: start;
+    align-self: end;
+    margin-left: 0;
+}
+
+#web-search-toggle-btn:hover {
+    background-color: var(--btn-bg-hover);
+    border-color: var(--btn-border-hover);
+    transform: translateY(-1px);
+}
+
+#web-search-toggle-btn:disabled {
+    background-color: var(--btn-bg-disabled);
+    border-color: var(--btn-border-disabled);
+    cursor: not-allowed;
+    transform: none;
+}
+
+#web-search-toggle-btn.toggle-on {
     border-color: var(--user-accent);
     color: var(--user-accent);
 }
@@ -611,6 +802,14 @@ a {
     filter: none;
 }
 
+.input-container.multiline-layout #send-btn {
+    grid-area: send;
+    justify-self: end;
+    align-self: end;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+
 #send-btn:not(:disabled):hover {
     filter: brightness(1.08);
     transform: translateY(-1px);
@@ -637,42 +836,23 @@ a {
     transform: translateY(-1px);
 }
 
-#clear-chat-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--btn-text);
-    padding: 10px;
-    background-color: var(--btn-bg);
-    border-radius: 9999px;
-    border: 1px solid var(--btn-border);
-    cursor: pointer;
-    margin-left: auto;
-    width: 38px;
-    height: 38px;
-    transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
-}
-
-#clear-chat-btn:not(:disabled):hover {
-    background-color: var(--btn-bg-hover);
-    border-color: var(--btn-border-hover);
-    transform: translateY(-1px);
-}
-
-#clear-chat-btn:disabled {
-    background-color: var(--btn-bg-disabled);
-    border-color: var(--btn-border-disabled);
-    cursor: not-allowed;
-    transform: none;
-}
-
 .code-block {
     background-color: #161616;
     color: white;
     padding: 10px;
     border-radius: 12px;
     border: 1px solid #2b2b2b;
-    overflow: scroll;
+    margin: 0;
+    overflow: auto;
+    white-space: pre;
+}
+
+.code-block code.hljs {
+    display: block;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    white-space: inherit;
 }
 
 #assistant-info-wrapper {
@@ -739,4 +919,33 @@ a {
 
 .assistant-info-example-btn:active {
     transform: translateY(0);
+}
+
+#file-drop-overlay {
+    position: fixed;
+    inset: 12px;
+    z-index: 50;
+    border: 2px dashed color-mix(in srgb, var(--user-accent) 70%, #4a4a4a);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--user-accent) 10%, rgba(20, 20, 20, 0.86));
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+#file-drop-overlay[hidden] {
+    display: none !important;
+}
+
+#file-drop-overlay-text {
+    color: #f2f2f2;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    background: rgba(20, 20, 20, 0.72);
+    border: 1px solid #4a4a4a;
+    border-radius: 9999px;
+    padding: 8px 12px;
 }

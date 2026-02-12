@@ -6,6 +6,8 @@
         SYSTEM_MESSAGE: "customSystemMessage",
         ACCENT_COLOR: "accentColor",
         LANGUAGE: "languagePreference",
+        CHAT_SESSIONS: "chatSessions",
+        ACTIVE_CHAT_ID: "activeChatId",
     });
 
     const MODELS = Object.freeze([

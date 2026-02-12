@@ -43,6 +43,8 @@ const EMPTY_STATE_EXAMPLES = [
 const CODE_BLOCK_REGEX = /```([\w+-]*)\n?([\s\S]*?)```/g;
 const MAX_ATTACHMENTS_PER_MESSAGE = 6;
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_CHAT_SESSIONS = 12;
+const DEFAULT_CHAT_LABEL_FALLBACK = "New chat";
 
 const {
     MODELS,
@@ -78,6 +80,9 @@ class PopupApp {
             selectedThinkingLevel: DEFAULT_THINKING_LEVEL,
             webSearchEnabled: DEFAULT_WEB_SEARCH_ENABLED,
             accentColor: DEFAULT_ACCENT_COLOR,
+            chatSessions: [],
+            activeChatId: "",
+            editingChatId: "",
             pendingAttachments: [],
             isAwaitingResponse: false,
             pendingAssistantMessage: null,
@@ -85,14 +90,21 @@ class PopupApp {
         };
 
         this.dom = {
+            inputContainer: document.querySelector(".input-container"),
             chatMessages: document.getElementById("chat-messages"),
             userInput: document.getElementById("user-input"),
             attachBtn: document.getElementById("attach-btn"),
             attachmentCount: document.getElementById("attachment-count"),
             attachmentInput: document.getElementById("attachment-input"),
+            fileDropOverlay: document.getElementById("file-drop-overlay"),
+            fileDropOverlayText: document.getElementById("file-drop-overlay-text"),
             sendBtn: document.getElementById("send-btn"),
             clearChatBtn: document.getElementById("clear-chat-btn"),
             settingsBtn: document.getElementById("settings-btn"),
+            chatDropdownBtn: document.getElementById("chat-dropdown-btn"),
+            chatDropdownBtnText: document.getElementById("chat-dropdown-btn-text"),
+            chatDropdownContent: document.getElementById("chat-dropdown-content"),
+            newChatBtn: document.getElementById("new-chat-btn"),
             modelDropdownBtn: document.getElementById("model-dropdown-btn"),
             modelDropdownBtnText: document.getElementById("model-dropdown-btn-text"),
             modelDropdownContent: document.getElementById("model-dropdown-content"),
@@ -105,6 +117,11 @@ class PopupApp {
 
         this.boundRuntimeMessageHandler = this.handleRuntimeMessage.bind(this);
         this.boundStorageChangeHandler = this.handleStorageChange.bind(this);
+        this.boundFileDragEnterHandler = this.handleFileDragEnter.bind(this);
+        this.boundFileDragOverHandler = this.handleFileDragOver.bind(this);
+        this.boundFileDragLeaveHandler = this.handleFileDragLeave.bind(this);
+        this.boundFileDropHandler = this.handleFileDrop.bind(this);
+        this.fileDragDepth = 0;
     }
 
     async init() {
@@ -117,7 +134,7 @@ class PopupApp {
 
             await Promise.all([
                 this.ensureApiKeyExists(),
-                this.loadChatHistory(),
+                this.loadChatSessions(),
                 this.loadModelSettings(),
                 this.loadAppearanceSettings(),
             ]);
@@ -135,19 +152,32 @@ class PopupApp {
             document.documentElement.lang = OPENAI_MODELS.getResolvedLanguage();
         }
 
+        this.dom.chatDropdownBtn.title = getI18nMessage("popupChatChangeTitle", null, "Change chat");
+        this.dom.newChatBtn.title = getI18nMessage("popupNewChatTitle", null, "New chat");
         this.dom.modelDropdownBtn.title = getI18nMessage("popupModelChangeTitle", null, "Change model");
         this.dom.thinkingDropdownBtn.title = getI18nMessage("popupThinkingChangeTitle", null, "Change thinking level");
         this.dom.webSearchToggleBtn.title = getI18nMessage("popupWebToggleTitle", null, "Toggle web search");
-        this.dom.clearChatBtn.title = getI18nMessage("popupClearChatTitle", null, "Clear chat");
+        if (this.dom.clearChatBtn) {
+            this.dom.clearChatBtn.title = getI18nMessage("popupClearChatTitle", null, "Clear chat");
+        }
         this.dom.settingsBtn.title = getI18nMessage("popupSettingsTitle", null, "Settings");
         this.dom.attachBtn.title = getI18nMessage("popupAttachTitle", null, "Add files or images");
         this.dom.userInput.placeholder = getI18nMessage("popupInputPlaceholder", null, "Ask me anything...");
         this.dom.sendBtn.title = getI18nMessage("popupSendTitle", null, "Send message");
+        if (this.dom.fileDropOverlayText) {
+            this.dom.fileDropOverlayText.innerText = getI18nMessage(
+                "popupDropFilesLabel",
+                null,
+                "Drop files or images to attach"
+            );
+        }
 
         const webLabel = this.dom.webSearchToggleBtn.querySelector(".dropdown-label");
         if (webLabel) {
             webLabel.innerText = getI18nMessage("popupWebToggleLabel", null, "Web");
         }
+
+        this.renderChatOptions();
     }
 
     bindEvents() {
@@ -184,12 +214,22 @@ class PopupApp {
             void this.handleAttachmentSelection();
         });
 
-        this.dom.clearChatBtn.addEventListener("click", () => {
-            void this.clearChatHistory();
-        });
+        if (this.dom.clearChatBtn) {
+            this.dom.clearChatBtn.addEventListener("click", () => {
+                void this.clearChatHistory();
+            });
+        }
 
         this.dom.settingsBtn.addEventListener("click", () => {
             chrome.runtime.openOptionsPage();
+        });
+
+        this.dom.chatDropdownBtn.addEventListener("click", () => {
+            this.toggleDropdown(this.dom.chatDropdownBtn, this.dom.chatDropdownContent);
+        });
+
+        this.dom.newChatBtn.addEventListener("click", () => {
+            void this.createNewChat(true);
         });
 
         this.dom.modelDropdownBtn.addEventListener("click", () => {
@@ -215,7 +255,16 @@ class PopupApp {
         window.addEventListener("unload", () => {
             chrome.runtime.onMessage.removeListener(this.boundRuntimeMessageHandler);
             chrome.storage.onChanged.removeListener(this.boundStorageChangeHandler);
+            window.removeEventListener("dragenter", this.boundFileDragEnterHandler, true);
+            window.removeEventListener("dragover", this.boundFileDragOverHandler, true);
+            window.removeEventListener("dragleave", this.boundFileDragLeaveHandler, true);
+            window.removeEventListener("drop", this.boundFileDropHandler, true);
         });
+
+        window.addEventListener("dragenter", this.boundFileDragEnterHandler, true);
+        window.addEventListener("dragover", this.boundFileDragOverHandler, true);
+        window.addEventListener("dragleave", this.boundFileDragLeaveHandler, true);
+        window.addEventListener("drop", this.boundFileDropHandler, true);
 
         chrome.runtime.onMessage.addListener(this.boundRuntimeMessageHandler);
         chrome.storage.onChanged.addListener(this.boundStorageChangeHandler);
@@ -240,6 +289,13 @@ class PopupApp {
             const webSearchChange = changes[STORAGE_KEYS.WEB_SEARCH];
             this.setWebSearchEnabled(getValidWebSearchEnabled(webSearchChange.newValue), false);
         }
+
+        if (
+            !this.state.isAwaitingResponse
+            && (changes[STORAGE_KEYS.CHAT_SESSIONS] || changes[STORAGE_KEYS.ACTIVE_CHAT_ID])
+        ) {
+            void this.loadChatSessions();
+        }
     }
 
     async ensureApiKeyExists() {
@@ -250,28 +306,29 @@ class PopupApp {
         }
     }
 
-    async loadChatHistory() {
-        const result = await getStorageData(["chatHistory"]);
-        const history = Array.isArray(result.chatHistory) ? result.chatHistory : [];
+    async loadChatSessions() {
+        const result = await getStorageData([STORAGE_KEYS.CHAT_SESSIONS, STORAGE_KEYS.ACTIVE_CHAT_ID, "chatHistory"]);
+        const normalizedState = normalizeChatSessionsState(
+            result[STORAGE_KEYS.CHAT_SESSIONS],
+            result[STORAGE_KEYS.ACTIVE_CHAT_ID],
+            result.chatHistory
+        );
+        const prunedState = pruneEmptyChatSessions(normalizedState.sessions, normalizedState.activeChatId, false);
+        const nextSessions = prunedState.sessions;
+        const nextActiveChatId = prunedState.activeChatId;
+        const shouldPersistPrunedState = prunedState.changed;
 
-        this.dom.chatMessages.innerHTML = "";
-
-        for (const entry of history) {
-            if (!entry || typeof entry.content !== "string" || !isRenderableRole(entry.role)) {
-                continue;
-            }
-
-            this.appendMessage(entry.role, entry.content);
+        if (normalizedState.changed || shouldPersistPrunedState) {
+            await setStorageData({
+                [STORAGE_KEYS.CHAT_SESSIONS]: nextSessions,
+                [STORAGE_KEYS.ACTIVE_CHAT_ID]: nextActiveChatId,
+            });
         }
 
-        if (this.getMessageCount() === 0) {
-            this.showAssistantInfo();
-        } else {
-            this.hideAssistantInfo();
-            this.scrollChatToBottom();
-        }
-
-        this.updateClearChatButtonState();
+        this.state.chatSessions = nextSessions;
+        this.state.activeChatId = nextActiveChatId;
+        this.renderChatOptions();
+        this.renderActiveChatHistory();
     }
 
     async loadModelSettings() {
@@ -332,6 +389,10 @@ class PopupApp {
             return;
         }
 
+        if (!this.state.activeChatId) {
+            await this.createNewChat(false);
+        }
+
         const visibleUserMessage = buildUserMessagePreview(userMessage, attachments);
         const attachmentsPayload = attachments.map(cloneAttachmentForRuntime);
 
@@ -343,7 +404,9 @@ class PopupApp {
         this.setAwaitingResponse(true);
         this.showPendingAssistantMessage();
 
-        chrome.runtime.sendMessage({ userInput: userMessage, attachments: attachmentsPayload }, () => {
+        this.touchActiveChatSession(userMessage);
+
+        chrome.runtime.sendMessage({ userInput: userMessage, attachments: attachmentsPayload, chatId: this.state.activeChatId }, () => {
             if (chrome.runtime.lastError) {
                 this.removePendingAssistantMessage();
                 this.state.pendingAttachments = attachments;
@@ -356,7 +419,10 @@ class PopupApp {
     async handleAttachmentSelection() {
         const files = Array.from(this.dom.attachmentInput.files || []);
         this.dom.attachmentInput.value = "";
+        await this.addPendingAttachmentsFromFiles(files);
+    }
 
+    async addPendingAttachmentsFromFiles(files) {
         if (files.length === 0) {
             return;
         }
@@ -426,6 +492,70 @@ class PopupApp {
                 )
             );
         }
+    }
+
+    handleFileDragEnter(event) {
+        if (!isFileDragEvent(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        this.fileDragDepth += 1;
+        if (!this.state.isAwaitingResponse) {
+            this.setFileDropOverlayVisible(true);
+        }
+    }
+
+    handleFileDragOver(event) {
+        if (!isFileDragEvent(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = this.state.isAwaitingResponse ? "none" : "copy";
+        }
+
+        if (!this.state.isAwaitingResponse) {
+            this.setFileDropOverlayVisible(true);
+        }
+    }
+
+    handleFileDragLeave(event) {
+        if (!isFileDragEvent(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        this.fileDragDepth = Math.max(0, this.fileDragDepth - 1);
+        if (this.fileDragDepth === 0) {
+            this.setFileDropOverlayVisible(false);
+        }
+    }
+
+    handleFileDrop(event) {
+        if (!isFileDragEvent(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        this.fileDragDepth = 0;
+        this.setFileDropOverlayVisible(false);
+
+        if (this.state.isAwaitingResponse) {
+            return;
+        }
+
+        const droppedFiles = Array.from((event.dataTransfer && event.dataTransfer.files) || []);
+        void this.addPendingAttachmentsFromFiles(droppedFiles);
+    }
+
+    setFileDropOverlayVisible(visible) {
+        if (!(this.dom.fileDropOverlay instanceof HTMLElement)) {
+            return;
+        }
+
+        this.dom.fileDropOverlay.hidden = !visible;
     }
 
     stopCurrentResponse() {
@@ -691,9 +821,9 @@ class PopupApp {
             }
 
             const codeElement = document.createElement("code");
-            codeElement.innerText = segment.value.replace(/^\n/, "");
+            applyCodeHighlighting(codeElement, segment.value.replace(/^\n/, ""), segment.language);
 
-            const codeContainer = document.createElement("div");
+            const codeContainer = document.createElement("pre");
             codeContainer.className = "code-block";
             codeContainer.appendChild(codeElement);
             fragment.appendChild(codeContainer);
@@ -889,11 +1019,15 @@ class PopupApp {
             return;
         }
 
+        if (!this.state.activeChatId) {
+            return;
+        }
+
         this.prepareRegenerateTarget(targetMessageElement);
         this.setAwaitingResponse(true);
         buttonElement.disabled = true;
 
-        chrome.runtime.sendMessage({ regenerate: true }, () => {
+        chrome.runtime.sendMessage({ regenerate: true, chatId: this.state.activeChatId }, () => {
             buttonElement.disabled = false;
             if (chrome.runtime.lastError) {
                 this.reportSystemError(getI18nMessage("popupErrorRegenerateFailed", null, "Failed to regenerate response. Please try again."));
@@ -968,11 +1102,26 @@ class PopupApp {
         }
 
         try {
-            await setStorageData({ chatHistory: [] });
+            const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === this.state.activeChatId);
+            if (sessionIndex === -1) {
+                return;
+            }
+
+            const nextSessions = this.state.chatSessions.slice();
+            const currentSession = nextSessions[sessionIndex];
+            nextSessions[sessionIndex] = {
+                ...currentSession,
+                history: [],
+                updatedAt: Date.now(),
+            };
+
+            this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+            await this.persistChatState();
             this.dom.chatMessages.innerHTML = "";
             this.state.pendingAssistantMessage = null;
             this.state.streamingAssistantMessage = null;
             this.clearPendingAttachments();
+            this.renderChatOptions();
             this.showAssistantInfo();
             this.updateClearChatButtonState();
             this.updateComposerState();
@@ -985,6 +1134,8 @@ class PopupApp {
         this.state.isAwaitingResponse = isAwaitingResponse;
         this.dom.userInput.disabled = isAwaitingResponse;
         this.dom.attachBtn.disabled = isAwaitingResponse;
+        this.dom.chatDropdownBtn.disabled = isAwaitingResponse;
+        this.dom.newChatBtn.disabled = isAwaitingResponse;
         this.dom.sendBtn.innerHTML = isAwaitingResponse ? STOP_ICON_HTML : SEND_ICON_HTML;
         this.dom.sendBtn.title = isAwaitingResponse
             ? getI18nMessage("popupStopTitle", null, "Stop response")
@@ -992,6 +1143,9 @@ class PopupApp {
 
         if (!isAwaitingResponse) {
             this.removePendingAssistantMessage();
+        } else {
+            this.fileDragDepth = 0;
+            this.setFileDropOverlayVisible(false);
         }
 
         this.updateComposerState();
@@ -1011,7 +1165,417 @@ class PopupApp {
         const nextHeight = Math.min(this.dom.userInput.scrollHeight, 100);
         this.dom.userInput.style.height = `${nextHeight}px`;
         this.dom.userInput.style.overflowY = this.dom.userInput.scrollHeight > 100 ? "scroll" : "auto";
-        this.dom.userInput.classList.toggle("multiline", isTextareaMultiline(this.dom.userInput));
+        const isMultiline = isTextareaMultiline(this.dom.userInput);
+        this.dom.userInput.classList.toggle("multiline", isMultiline);
+        if (this.dom.inputContainer) {
+            this.dom.inputContainer.classList.toggle("multiline-layout", isMultiline);
+        }
+    }
+
+    renderChatOptions() {
+        this.dom.chatDropdownContent.innerHTML = "";
+
+        const sessions = normalizeChatSessionsForUi(this.state.chatSessions);
+        const hasEditingSession = sessions.some((session) => session.id === this.state.editingChatId);
+        if (!hasEditingSession) {
+            this.state.editingChatId = "";
+        }
+
+        const pinnedSessions = sessions.filter((session) => Boolean(session.pinned));
+        const regularSessions = sessions.filter((session) => !session.pinned);
+        const sessionIndexById = new Map(sessions.map((session, index) => [session.id, index]));
+
+        const renderSection = (labelKey, labelFallback, sectionSessions) => {
+            if (!Array.isArray(sectionSessions) || sectionSessions.length === 0) {
+                return;
+            }
+
+            const sectionLabel = document.createElement("div");
+            sectionLabel.className = "dropdown-group-label";
+            sectionLabel.innerText = getI18nMessage(labelKey, null, labelFallback);
+            this.dom.chatDropdownContent.appendChild(sectionLabel);
+
+            for (const session of sectionSessions) {
+                const option = document.createElement("div");
+                option.className = "dropdown-option chat-dropdown-option";
+                option.dataset.chatId = session.id;
+                option.addEventListener("click", () => {
+                    void this.setActiveChatSession(session.id, true);
+                    this.closeDropdown(this.dom.chatDropdownBtn, this.dom.chatDropdownContent);
+                });
+
+                const sessionIndex = sessionIndexById.has(session.id) ? sessionIndexById.get(session.id) : 0;
+                const chatTitle = getSessionDisplayTitle(session, sessionIndex);
+                const isEditing = this.state.editingChatId === session.id;
+
+                if (isEditing) {
+                    option.classList.add("editing");
+                    const inputElement = document.createElement("input");
+                    inputElement.type = "text";
+                    inputElement.maxLength = 80;
+                    inputElement.className = "chat-dropdown-option-input";
+                    inputElement.value = typeof session.title === "string" ? session.title : "";
+                    inputElement.placeholder = chatTitle;
+                    inputElement.setAttribute("aria-label", getI18nMessage("popupRenameChatTitle", null, "Rename chat"));
+
+                    inputElement.addEventListener("click", (event) => {
+                        event.stopPropagation();
+                    });
+                    inputElement.addEventListener("keydown", (event) => {
+                        event.stopPropagation();
+
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            void this.commitInlineRename(session.id, inputElement.value);
+                            return;
+                        }
+
+                        if (event.key === "Escape") {
+                            event.preventDefault();
+                            this.cancelInlineRename();
+                        }
+                    });
+                    inputElement.addEventListener("blur", () => {
+                        void this.commitInlineRename(session.id, inputElement.value);
+                    });
+                    option.appendChild(inputElement);
+
+                    requestAnimationFrame(() => {
+                        inputElement.focus();
+                        inputElement.select();
+                    });
+                } else {
+                    const titleElement = document.createElement("span");
+                    titleElement.className = "chat-dropdown-option-title";
+                    titleElement.innerText = chatTitle;
+                    option.appendChild(titleElement);
+                }
+
+                const actionsElement = document.createElement("div");
+                actionsElement.className = "chat-dropdown-option-actions";
+
+                const renameButton = document.createElement("button");
+                renameButton.type = "button";
+                renameButton.className = "chat-dropdown-option-action chat-dropdown-option-rename";
+                const renameButtonLabel = isEditing
+                    ? getI18nMessage("popupSaveChatTitle", null, "Save chat name")
+                    : getI18nMessage("popupRenameChatTitle", null, "Rename chat");
+                renameButton.innerHTML = isEditing
+                    ? '<i class="fa fa-check"></i>'
+                    : '<i class="fa fa-pen"></i>';
+                renameButton.title = renameButtonLabel;
+                renameButton.setAttribute("aria-label", renameButtonLabel);
+                renameButton.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (isEditing) {
+                        const inputElement = option.querySelector(".chat-dropdown-option-input");
+                        const nextTitle = inputElement instanceof HTMLInputElement ? inputElement.value : "";
+                        void this.commitInlineRename(session.id, nextTitle);
+                        return;
+                    }
+
+                    this.startInlineRename(session.id);
+                });
+                actionsElement.appendChild(renameButton);
+
+                const pinButton = document.createElement("button");
+                pinButton.type = "button";
+                pinButton.className = "chat-dropdown-option-action chat-dropdown-option-pin";
+                pinButton.innerHTML = '<i class="fa fa-thumbtack"></i>';
+                pinButton.classList.toggle("active", Boolean(session.pinned));
+                const pinButtonLabel = session.pinned
+                    ? getI18nMessage("popupUnpinChatTitle", null, "Unpin chat")
+                    : getI18nMessage("popupPinChatTitle", null, "Pin chat");
+                pinButton.title = pinButtonLabel;
+                pinButton.setAttribute("aria-label", pinButtonLabel);
+                pinButton.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void this.toggleChatSessionPinned(session.id);
+                });
+                actionsElement.appendChild(pinButton);
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.className = "chat-dropdown-option-action chat-dropdown-option-delete";
+                deleteButton.innerHTML = '<i class="fa fa-trash"></i>';
+                deleteButton.title = getI18nMessage("popupDeleteChatTitle", null, "Delete chat");
+                deleteButton.setAttribute("aria-label", getI18nMessage("popupDeleteChatTitle", null, "Delete chat"));
+                deleteButton.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void this.deleteChatSession(session.id);
+                });
+                actionsElement.appendChild(deleteButton);
+                option.appendChild(actionsElement);
+
+                this.dom.chatDropdownContent.appendChild(option);
+            }
+        };
+
+        if (pinnedSessions.length > 0) {
+            renderSection("popupPinnedChatsGroupLabel", "Pinned chats", pinnedSessions);
+            renderSection("popupChatGroupLabel", "Chats", regularSessions);
+        } else {
+            renderSection("popupChatGroupLabel", "Chats", regularSessions);
+        }
+
+        this.dom.chatDropdownContent.querySelectorAll(".dropdown-option").forEach((option) => {
+            option.classList.toggle("active", option.dataset.chatId === this.state.activeChatId);
+        });
+
+        const activeSessionIndex = sessions.findIndex((session) => session.id === this.state.activeChatId);
+        const activeSession = activeSessionIndex >= 0 ? sessions[activeSessionIndex] : null;
+        setElementText(
+            this.dom.chatDropdownBtnText,
+            activeSession
+                ? getSessionDisplayTitle(activeSession, activeSessionIndex)
+                : getI18nMessage("popupChatFallbackLabel", null, "Chat")
+        );
+    }
+
+    renderActiveChatHistory() {
+        this.dom.chatMessages.innerHTML = "";
+
+        const activeSession = this.getActiveChatSession();
+        const history = activeSession && Array.isArray(activeSession.history)
+            ? activeSession.history
+            : [];
+
+        for (const entry of history) {
+            if (!entry || typeof entry.content !== "string" || !isRenderableRole(entry.role)) {
+                continue;
+            }
+
+            this.appendMessage(entry.role, entry.content);
+        }
+
+        if (this.getMessageCount() === 0) {
+            this.showAssistantInfo();
+        } else {
+            this.hideAssistantInfo();
+            this.scrollChatToBottom();
+        }
+
+        this.updateClearChatButtonState();
+    }
+
+    getActiveChatSession() {
+        return this.state.chatSessions.find((session) => session.id === this.state.activeChatId) || null;
+    }
+
+    async setActiveChatSession(chatId, persist) {
+        if (typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const hasSession = this.state.chatSessions.some((session) => session.id === chatId);
+        if (!hasSession) {
+            return;
+        }
+
+        const prunedState = pruneEmptyChatSessions(this.state.chatSessions, chatId, false);
+        this.state.chatSessions = prunedState.sessions;
+        this.state.activeChatId = prunedState.activeChatId;
+        this.state.editingChatId = "";
+        this.renderChatOptions();
+        this.renderActiveChatHistory();
+
+        if (persist || prunedState.changed) {
+            await this.persistChatState();
+        }
+    }
+
+    async createNewChat(persist) {
+        if (this.state.isAwaitingResponse) {
+            return;
+        }
+
+        const activeSession = this.getActiveChatSession();
+        if (isChatSessionEmpty(activeSession)) {
+            this.renderChatOptions();
+            this.renderActiveChatHistory();
+            this.updateComposerState();
+            return;
+        }
+
+        const prunedState = pruneEmptyChatSessions(this.state.chatSessions, this.state.activeChatId, false);
+        this.state.chatSessions = prunedState.sessions;
+        this.state.activeChatId = prunedState.activeChatId;
+        this.state.editingChatId = "";
+
+        const timestamp = Date.now();
+        const newSession = {
+            id: createChatSessionId(),
+            title: "",
+            history: [],
+            pinned: false,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+        };
+
+        const nextSessions = [newSession].concat(this.state.chatSessions);
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions).slice(0, MAX_CHAT_SESSIONS);
+        this.state.activeChatId = newSession.id;
+
+        if (persist) {
+            await this.persistChatState();
+        }
+
+        this.dom.chatMessages.innerHTML = "";
+        this.renderChatOptions();
+        this.showAssistantInfo();
+        this.updateClearChatButtonState();
+        this.updateComposerState();
+    }
+
+    async deleteChatSession(chatId) {
+        if (this.state.isAwaitingResponse || typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const sessionExists = this.state.chatSessions.some((session) => session.id === chatId);
+        if (!sessionExists) {
+            return;
+        }
+
+        let nextSessions = this.state.chatSessions.filter((session) => session.id !== chatId);
+        nextSessions = normalizeChatSessionsForUi(nextSessions);
+
+        if (nextSessions.length === 0) {
+            const timestamp = Date.now();
+            nextSessions = [{
+                id: createChatSessionId(),
+                title: "",
+                history: [],
+                pinned: false,
+                createdAt: timestamp,
+                updatedAt: timestamp,
+            }];
+        }
+
+        const nextActiveChatId = this.state.activeChatId === chatId
+            ? nextSessions[0].id
+            : this.state.activeChatId;
+
+        this.state.chatSessions = nextSessions;
+        this.state.activeChatId = nextActiveChatId;
+        if (this.state.editingChatId === chatId) {
+            this.state.editingChatId = "";
+        }
+        await this.persistChatState();
+        this.renderChatOptions();
+        this.renderActiveChatHistory();
+        this.updateComposerState();
+    }
+
+    startInlineRename(chatId) {
+        if (this.state.isAwaitingResponse || typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const sessionExists = this.state.chatSessions.some((session) => session.id === chatId);
+        if (!sessionExists) {
+            return;
+        }
+
+        this.state.editingChatId = chatId;
+        this.renderChatOptions();
+    }
+
+    cancelInlineRename() {
+        if (!this.state.editingChatId) {
+            return;
+        }
+
+        this.state.editingChatId = "";
+        this.renderChatOptions();
+    }
+
+    async commitInlineRename(chatId, rawTitle) {
+        if (typeof chatId !== "string" || chatId.length === 0) {
+            this.cancelInlineRename();
+            return;
+        }
+
+        const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === chatId);
+        if (sessionIndex === -1) {
+            this.cancelInlineRename();
+            return;
+        }
+
+        const currentSession = this.state.chatSessions[sessionIndex];
+        const currentTitle = typeof currentSession.title === "string" ? currentSession.title : "";
+        const normalizedTitle = typeof rawTitle === "string" ? rawTitle.trim().slice(0, 80) : "";
+
+        this.state.editingChatId = "";
+        if (normalizedTitle === currentTitle) {
+            this.renderChatOptions();
+            return;
+        }
+
+        const nextSessions = this.state.chatSessions.slice();
+        nextSessions[sessionIndex] = {
+            ...currentSession,
+            title: normalizedTitle,
+            updatedAt: Date.now(),
+        };
+
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+        await this.persistChatState();
+        this.renderChatOptions();
+    }
+
+    async toggleChatSessionPinned(chatId) {
+        if (this.state.isAwaitingResponse || typeof chatId !== "string" || chatId.length === 0) {
+            return;
+        }
+
+        const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === chatId);
+        if (sessionIndex === -1) {
+            return;
+        }
+
+        const nextSessions = this.state.chatSessions.slice();
+        const targetSession = { ...nextSessions[sessionIndex] };
+        targetSession.pinned = !Boolean(targetSession.pinned);
+        targetSession.updatedAt = Date.now();
+        nextSessions[sessionIndex] = targetSession;
+
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+        await this.persistChatState();
+        this.renderChatOptions();
+    }
+
+    touchActiveChatSession(userMessage) {
+        const sessionIndex = this.state.chatSessions.findIndex((session) => session.id === this.state.activeChatId);
+        if (sessionIndex === -1) {
+            return;
+        }
+
+        const nextSessions = this.state.chatSessions.slice();
+        const activeSession = { ...nextSessions[sessionIndex] };
+        activeSession.updatedAt = Date.now();
+
+        const generatedTitle = generateChatTitleFromUserMessage(userMessage);
+        if (!activeSession.title && generatedTitle) {
+            activeSession.title = generatedTitle;
+        }
+
+        nextSessions[sessionIndex] = activeSession;
+        this.state.chatSessions = normalizeChatSessionsForUi(nextSessions);
+        this.renderChatOptions();
+        void this.persistChatState().catch((error) => {
+            this.reportSystemError(getSafeErrorMessage(error));
+        });
+    }
+
+    async persistChatState() {
+        await setStorageData({
+            [STORAGE_KEYS.CHAT_SESSIONS]: this.state.chatSessions,
+            [STORAGE_KEYS.ACTIVE_CHAT_ID]: this.state.activeChatId,
+        });
     }
 
     renderModelOptions() {
@@ -1069,7 +1633,7 @@ class PopupApp {
     setSelectedModel(modelId, persist) {
         this.state.selectedModelId = getValidModelId(modelId);
         const modelInfo = getModelById(this.state.selectedModelId) || getModelById(DEFAULT_MODEL_ID);
-        this.dom.modelDropdownBtnText.innerText = modelInfo.label;
+        setElementText(this.dom.modelDropdownBtnText, modelInfo.label);
 
         this.dom.modelDropdownContent.querySelectorAll(".dropdown-option").forEach((option) => {
             option.classList.toggle("active", option.dataset.modelId === this.state.selectedModelId);
@@ -1092,7 +1656,7 @@ class PopupApp {
     setSelectedThinkingLevel(thinkingLevel, persist) {
         this.state.selectedThinkingLevel = getValidThinkingLevel(thinkingLevel, this.state.selectedModelId);
         const thinkingLabel = getThinkingLabel(this.state.selectedThinkingLevel, this.state.selectedModelId);
-        this.dom.thinkingDropdownBtnText.innerText = getI18nMessage("popupThinkLabelTemplate", thinkingLabel, thinkingLabel);
+        setElementText(this.dom.thinkingDropdownBtnText, getI18nMessage("popupThinkLabelTemplate", thinkingLabel, thinkingLabel));
 
         this.dom.thinkingDropdownContent.querySelectorAll(".dropdown-option").forEach((option) => {
             option.classList.toggle("active", option.dataset.thinkingLevel === this.state.selectedThinkingLevel);
@@ -1148,6 +1712,7 @@ class PopupApp {
     }
 
     closeAllDropdowns() {
+        this.closeDropdown(this.dom.chatDropdownBtn, this.dom.chatDropdownContent);
         this.closeDropdown(this.dom.modelDropdownBtn, this.dom.modelDropdownContent);
         this.closeDropdown(this.dom.thinkingDropdownBtn, this.dom.thinkingDropdownContent);
     }
@@ -1225,6 +1790,10 @@ class PopupApp {
     }
 
     updateClearChatButtonState() {
+        if (!this.dom.clearChatBtn) {
+            return;
+        }
+
         this.dom.clearChatBtn.disabled = this.getMessageCount() === 0;
     }
 
@@ -1257,6 +1826,7 @@ class PopupApp {
         await setLanguagePreference(normalizedLanguagePreference);
 
         this.applyLocalization();
+        this.renderChatOptions();
         this.renderModelOptions();
         this.setSelectedModel(this.state.selectedModelId, false);
         this.renderThinkingOptions();
@@ -1306,6 +1876,203 @@ class PopupApp {
     }
 }
 
+function normalizeChatSessionsState(rawSessions, rawActiveChatId, legacyChatHistory) {
+    const sessions = [];
+    const seenIds = new Set();
+    const now = Date.now();
+
+    if (Array.isArray(rawSessions)) {
+        for (const session of rawSessions) {
+            if (!session || typeof session !== "object") {
+                continue;
+            }
+
+            const sessionId = typeof session.id === "string" ? session.id.trim() : "";
+            if (!sessionId || seenIds.has(sessionId)) {
+                continue;
+            }
+
+            seenIds.add(sessionId);
+            const normalizedHistory = normalizeStoredChatHistory(session.history);
+            sessions.push({
+                id: sessionId,
+                title: typeof session.title === "string" ? session.title.trim().slice(0, 80) : "",
+                history: normalizedHistory,
+                pinned: Boolean(session.pinned),
+                createdAt: Number.isFinite(session.createdAt) ? Number(session.createdAt) : now,
+                updatedAt: Number.isFinite(session.updatedAt) ? Number(session.updatedAt) : now,
+            });
+        }
+    }
+
+    if (sessions.length === 0) {
+        const legacyHistory = normalizeStoredChatHistory(legacyChatHistory);
+        sessions.push({
+            id: createChatSessionId(),
+            title: generateChatTitleFromHistory(legacyHistory),
+            history: legacyHistory,
+            pinned: false,
+            createdAt: now,
+            updatedAt: now,
+        });
+    }
+
+    const normalizedSessions = normalizeChatSessionsForUi(sessions).slice(0, MAX_CHAT_SESSIONS);
+    const preferredActiveChatId = typeof rawActiveChatId === "string" ? rawActiveChatId : "";
+    const hasPreferredActive = normalizedSessions.some((session) => session.id === preferredActiveChatId);
+    const activeChatId = hasPreferredActive
+        ? preferredActiveChatId
+        : normalizedSessions[0].id;
+
+    const changed = (
+        !Array.isArray(rawSessions)
+        || normalizedSessions.length !== rawSessions.length
+        || preferredActiveChatId !== activeChatId
+        || normalizedSessions.some((session, index) => {
+            const rawSession = rawSessions[index];
+            return !rawSession
+                || rawSession.id !== session.id
+                || rawSession.title !== session.title
+                || Boolean(rawSession.pinned) !== Boolean(session.pinned)
+                || rawSession.createdAt !== session.createdAt
+                || rawSession.updatedAt !== session.updatedAt
+                || JSON.stringify(rawSession.history) !== JSON.stringify(session.history);
+        })
+    );
+
+    return {
+        sessions: normalizedSessions,
+        activeChatId: activeChatId,
+        changed,
+    };
+}
+
+function normalizeChatSessionsForUi(sessions) {
+    return (Array.isArray(sessions) ? sessions.slice() : [])
+        .sort((leftSession, rightSession) => {
+            const leftPinnedScore = leftSession && leftSession.pinned ? 1 : 0;
+            const rightPinnedScore = rightSession && rightSession.pinned ? 1 : 0;
+            if (leftPinnedScore !== rightPinnedScore) {
+                return rightPinnedScore - leftPinnedScore;
+            }
+
+            return Number(rightSession.updatedAt || 0) - Number(leftSession.updatedAt || 0);
+        })
+        .slice(0, MAX_CHAT_SESSIONS);
+}
+
+function pruneEmptyChatSessions(rawSessions, rawActiveChatId, removeActiveEmptyWhenPossible) {
+    const sessions = normalizeChatSessionsForUi(rawSessions);
+    if (sessions.length === 0) {
+        return {
+            sessions: sessions,
+            activeChatId: "",
+            changed: false,
+        };
+    }
+
+    const activeChatId = typeof rawActiveChatId === "string" ? rawActiveChatId : "";
+    const hasNonEmptySession = sessions.some((session) => !isChatSessionEmpty(session));
+    const nextSessions = sessions.filter((session) => {
+        if (!isChatSessionEmpty(session)) {
+            return true;
+        }
+
+        if (session.id !== activeChatId) {
+            return false;
+        }
+
+        return !removeActiveEmptyWhenPossible || !hasNonEmptySession;
+    });
+
+    const safeSessions = nextSessions.length > 0
+        ? normalizeChatSessionsForUi(nextSessions)
+        : [sessions[0]];
+    const resolvedActiveChatId = safeSessions.some((session) => session.id === activeChatId)
+        ? activeChatId
+        : safeSessions[0].id;
+    const changed = (
+        resolvedActiveChatId !== activeChatId
+        || safeSessions.length !== sessions.length
+        || safeSessions.some((session, index) => session.id !== sessions[index].id)
+    );
+
+    return {
+        sessions: safeSessions,
+        activeChatId: resolvedActiveChatId,
+        changed: changed,
+    };
+}
+
+function isChatSessionEmpty(session) {
+    if (!session || typeof session !== "object") {
+        return true;
+    }
+
+    return !Array.isArray(session.history) || session.history.length === 0;
+}
+
+function normalizeStoredChatHistory(rawHistory) {
+    if (!Array.isArray(rawHistory)) {
+        return [];
+    }
+
+    const normalizedHistory = [];
+    for (const entry of rawHistory) {
+        if (!entry || typeof entry !== "object") {
+            continue;
+        }
+
+        if (!isRenderableRole(entry.role) || typeof entry.content !== "string") {
+            continue;
+        }
+
+        normalizedHistory.push({ role: entry.role, content: entry.content });
+    }
+
+    return normalizedHistory;
+}
+
+function getSessionDisplayTitle(session, index) {
+    const title = session && typeof session.title === "string" ? session.title.trim() : "";
+    if (title.length > 0) {
+        return title.slice(0, 52);
+    }
+
+    const fallbackBase = getI18nMessage("popupChatDefaultTitle", null, DEFAULT_CHAT_LABEL_FALLBACK);
+    return `${fallbackBase} ${index + 1}`;
+}
+
+function generateChatTitleFromUserMessage(userMessage) {
+    if (typeof userMessage !== "string") {
+        return "";
+    }
+
+    const firstLine = userMessage.trim().split("\n")[0] || "";
+    return firstLine.slice(0, 52);
+}
+
+function generateChatTitleFromHistory(history) {
+    if (!Array.isArray(history)) {
+        return "";
+    }
+
+    for (const entry of history) {
+        if (entry && entry.role === "user" && typeof entry.content === "string") {
+            const generatedTitle = generateChatTitleFromUserMessage(entry.content);
+            if (generatedTitle) {
+                return generatedTitle;
+            }
+        }
+    }
+
+    return "";
+}
+
+function createChatSessionId() {
+    return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function parseCodeFenceSegments(text) {
     const input = typeof text === "string" ? text : String(text);
     const segments = [];
@@ -1317,7 +2084,11 @@ function parseCodeFenceSegments(text) {
             segments.push({ type: "text", value: input.slice(cursor, match.index) });
         }
 
-        segments.push({ type: "code", value: match[2] || "" });
+        segments.push({
+            type: "code",
+            value: match[2] || "",
+            language: normalizeCodeLanguageHint(match[1] || ""),
+        });
         cursor = match.index + match[0].length;
         match = CODE_BLOCK_REGEX.exec(input);
     }
@@ -1332,6 +2103,63 @@ function parseCodeFenceSegments(text) {
 
     CODE_BLOCK_REGEX.lastIndex = 0;
     return segments;
+}
+
+function applyCodeHighlighting(codeElement, rawCode, languageHint) {
+    if (!(codeElement instanceof HTMLElement)) {
+        return;
+    }
+
+    const normalizedCode = typeof rawCode === "string" ? rawCode : String(rawCode || "");
+    const normalizedLanguageHint = normalizeCodeLanguageHint(languageHint);
+    if (normalizedLanguageHint) {
+        codeElement.classList.add(`language-${normalizedLanguageHint}`);
+    }
+
+    const highlighter = typeof globalThis === "object" && globalThis && globalThis.hljs ? globalThis.hljs : null;
+    if (!highlighter) {
+        codeElement.innerText = normalizedCode;
+        return;
+    }
+
+    try {
+        const hasExplicitLanguage = normalizedLanguageHint
+            && typeof highlighter.getLanguage === "function"
+            && Boolean(highlighter.getLanguage(normalizedLanguageHint));
+
+        if (hasExplicitLanguage && typeof highlighter.highlight === "function") {
+            const highlightedResult = highlighter.highlight(normalizedCode, {
+                language: normalizedLanguageHint,
+                ignoreIllegals: true,
+            });
+            codeElement.innerHTML = highlightedResult.value;
+            return;
+        }
+
+        if (typeof highlighter.highlightAuto === "function") {
+            const highlightedAutoResult = highlighter.highlightAuto(normalizedCode);
+            codeElement.innerHTML = highlightedAutoResult.value;
+            return;
+        }
+    } catch {
+        codeElement.innerText = normalizedCode;
+        return;
+    }
+
+    codeElement.innerText = normalizedCode;
+}
+
+function normalizeCodeLanguageHint(languageHint) {
+    if (typeof languageHint !== "string") {
+        return "";
+    }
+
+    const normalizedLanguage = languageHint.trim().toLowerCase();
+    if (!/^[a-z0-9_+#.-]+$/i.test(normalizedLanguage)) {
+        return "";
+    }
+
+    return normalizedLanguage;
 }
 
 function groupModelsByType(models) {
@@ -1418,6 +2246,18 @@ function appendPlainText(container, text, options) {
     const lines = String(text).split("\n");
     lines.forEach((line, index) => {
         if (shouldParseInlineMarkdown) {
+            const headingInfo = parseMarkdownHeadingLine(line);
+            if (headingInfo) {
+                const headingElement = document.createElement(`h${Math.min(headingInfo.level, 6)}`);
+                headingElement.className = `assistant-markdown-heading assistant-markdown-heading-level-${headingInfo.level}`;
+                appendInlineMarkdown(headingElement, headingInfo.text, {
+                    enableLinks: true,
+                    enableBold: true,
+                });
+                container.appendChild(headingElement);
+                return;
+            }
+
             appendInlineMarkdown(container, line, {
                 enableLinks: true,
                 enableBold: true,
@@ -1430,6 +2270,19 @@ function appendPlainText(container, text, options) {
             container.appendChild(document.createElement("br"));
         }
     });
+}
+
+function parseMarkdownHeadingLine(lineText) {
+    const input = typeof lineText === "string" ? lineText : String(lineText);
+    const match = input.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*$/);
+    if (!match) {
+        return null;
+    }
+
+    return {
+        level: match[1].length,
+        text: match[2],
+    };
 }
 
 function appendInlineMarkdown(container, lineText, options) {
@@ -1603,6 +2456,14 @@ function isStreamPayload(streamPayload) {
         || streamPayload.type === "done";
 }
 
+function isFileDragEvent(event) {
+    if (!event || !event.dataTransfer || !event.dataTransfer.types) {
+        return false;
+    }
+
+    return Array.from(event.dataTransfer.types).includes("Files");
+}
+
 function isImageContent(content) {
     if (typeof content !== "string") {
         return false;
@@ -1614,6 +2475,14 @@ function isImageContent(content) {
 
 function isRenderableRole(role) {
     return role === "user" || role === "assistant";
+}
+
+function setElementText(element, text) {
+    if (!(element instanceof HTMLElement)) {
+        return;
+    }
+
+    element.innerText = typeof text === "string" ? text : String(text ?? "");
 }
 
 function getStorageData(keys) {
